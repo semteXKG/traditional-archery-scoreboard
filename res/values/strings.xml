@@ -2,6 +2,17 @@
 <resources>
 
     <string name="hello">Hello World, TacActivity!</string>
-    <string name="app_name">Traditional-archery-scoreboard</string>
+    <string name="app_name">Traditional Archery Scoreboard</string>
+    <string name="user_manager">Usermanager</string>
+    <string name="start">Start</string>
+    <string name="history">History</string>
+    <string name="searchUser">search</string>
+    <string name="addUser">add user</string>
+    <string name="username">Username</string>
+    <string name="mail">Mail</string>
+    <string name="color">Color</string>
+    <string name="pick_color">pick</string>
+    <string name="cancel">cancel</string>
+    <string name="save">save</string>
 
 </resources>

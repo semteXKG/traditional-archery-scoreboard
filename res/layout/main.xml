@@ -3,10 +3,26 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:orientation="vertical" >
-
-    <TextView
+
+    <Button
+        android:id="@+id/btnUsermanager"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="@string/hello" />
+        android:layout_weight="0.333"
+        android:text="@string/user_manager" android:textSize="10pt" android:textStyle="bold"/>
+
+    <Button
+        android:id="@+id/btnStart"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.333"
+        android:text="@string/start" android:textStyle="bold" android:textSize="10pt"/>
+
+    <Button
+        android:id="@+id/btnHistory"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.333"
+        android:text="@string/history" android:textSize="10pt" android:textStyle="bold"/>
 
 </LinearLayout>
