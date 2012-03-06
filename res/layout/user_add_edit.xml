@@ -50,6 +50,12 @@
 	        android:id="@+id/linearLayout1"
 	        android:layout_width="match_parent"
 	        android:layout_height="wrap_content" >
+
+	        <Button
+	            android:id="@+id/btnPicker"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:text="@string/pick_color" />
 	
 	        <View
 	            android:id="@+id/dummyview_col"
@@ -58,12 +64,6 @@
 	            android:layout_margin="2dip"
 	            android:layout_gravity="center_vertical"
 	            android:layout_weight="1.0"/>
-	
-	        <Button
-	            android:id="@+id/btnPicker"
-	            android:layout_width="wrap_content"
-	            android:layout_height="wrap_content"
-	            android:text="@string/pick_color" />
 	
 	    </LinearLayout>
 
@@ -76,13 +76,15 @@
 	            android:id="@+id/btnCancelUser"
 	            android:layout_width="wrap_content"
 	            android:layout_height="wrap_content"
-	            android:text="@string/cancel" />
-
+	            android:layout_weight="0.5"
+              android:text="@string/cancel" />
+              
 	        <Button
 	            android:id="@+id/btnSaveUser"
 	            android:layout_width="wrap_content"
 	            android:layout_height="wrap_content"
-	            android:text="@string/save" android:layout_gravity="right"/>
+	            android:layout_weight="0.5"
+              android:text="@string/save" android:layout_gravity="right"/>
 
 	    </LinearLayout>
 	    

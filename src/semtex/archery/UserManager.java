@@ -1,78 +1,101 @@
+
 package semtex.archery;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import semtex.archery.entities.User;
-
-import android.app.Activity;
+import semtex.archery.entities.data.DatabaseHelper;
+import semtex.archery.entities.data.entities.User;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.ListView;
-import android.widget.TextView;
+import android.widget.*;
 
-public class UserManager extends Activity {
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.usermanager);
-		
-		User blahr = new User(1L, "lalalal", "mail@gmx.at", 3333);
-		User blub = new User(2L, "asdasdfasdf", "hudeeeeeeeeeee@orf.at", 776776);
+import com.j256.ormlite.android.apptools.OrmLiteBaseActivity;
+import com.j256.ormlite.dao.RuntimeExceptionDao;
 
-		ArrayList<User> users = new ArrayList<User>();
-		users.add(blahr);
-		users.add(blub);
-		Button addUser = (Button) findViewById(R.id.btnAdd);
-		addUser.setOnClickListener(new View.OnClickListener() {
-			
-			public void onClick(View v) {
-				Intent intent = new Intent(v.getContext(), AddEditUser.class);
-				startActivity(intent);
-			}
-		});
 
-		Object obj = findViewById(R.id.lvUsers);
-		ListView listView = (ListView) findViewById(R.id.lvUsers);
-		ArrayAdapter<User> adapter = new UserAdapter(this, R.layout.user_row, users);
-		listView.setAdapter(adapter);
-	}
-	
-	private class UserAdapter extends ArrayAdapter<User> {
+public class UserManager extends OrmLiteBaseActivity<DatabaseHelper> {
 
-		public UserAdapter(Context context, int textViewResourceId,
-				List<User> objects) {
-			super(context, textViewResourceId, objects);
-		}
-		
-		@Override
-		public View getView(int position, View convertView, ViewGroup parent) {
-			View v = convertView;
-			User currentUser = getItem(position);
-			if(v == null) {
-				LayoutInflater li = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
-				v = li.inflate(R.layout.user_row, null);
-			}
-			
-			TextView userName = (TextView) v.findViewById(R.id.txtUsername);
-			userName.setText(currentUser.getUserName());
-			
-			TextView mail = (TextView) v.findViewById(R.id.txtMail);
-			mail.setText(currentUser.getMail());
-			
-			View view = v.findViewById(R.id.dummyview_bg);
-			view.setBackgroundColor(Color.GREEN);
-			view.invalidate();
-			
-			return v;
-		}
-		
-	}
+  public static final int REQUEST_CODE = 0;
+
+
+  @Override
+  protected void onCreate(final Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.usermanager);
+
+    final Button addUser = (Button)findViewById(R.id.btnAdd);
+    addUser.setOnClickListener(new View.OnClickListener() {
+
+      public void onClick(final View v) {
+        final Intent intent = new Intent(v.getContext(), AddEditUser.class);
+        startActivityForResult(intent, REQUEST_CODE);
+      }
+    });
+
+    fillUsers();
+
+    final ListView listView = (ListView)findViewById(R.id.lvUsers);
+    listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+
+      public boolean onItemLongClick(final AdapterView<?> av, final View v, final int i, final long l) {
+        final User user = (User)listView.getAdapter().getItem(i);
+        final Intent intent = new Intent(v.getContext(), AddEditUser.class);
+        intent.putExtra("userid", user.getId());
+        startActivityForResult(intent, REQUEST_CODE);
+        return true;
+      }
+
+    });
+  }
+
+
+  @Override
+  protected void onResume() {
+    super.onResume();
+    fillUsers();
+  }
+
+
+  private void fillUsers() {
+    final RuntimeExceptionDao<User, Long> userDao = getHelper().getUserDao();
+    final List<User> users = userDao.queryForAll();
+    final ListView listView = (ListView)findViewById(R.id.lvUsers);
+    final ArrayAdapter<User> adapter = new UserAdapter(this, R.layout.user_row, users);
+    listView.setAdapter(adapter);
+  }
+
+  public class UserAdapter extends ArrayAdapter<User> {
+
+    public UserAdapter(final Context context, final int textViewResourceId, final List<User> objects) {
+      super(context, textViewResourceId, objects);
+    }
+
+
+    @Override
+    public View getView(final int position, final View convertView, final ViewGroup parent) {
+      View v = convertView;
+      final User currentUser = getItem(position);
+      if (v == null) {
+        final LayoutInflater li = (LayoutInflater)getSystemService(LAYOUT_INFLATER_SERVICE);
+        v = li.inflate(R.layout.user_row, null);
+      }
+
+      final TextView userName = (TextView)v.findViewById(R.id.txtUsername);
+      userName.setText(currentUser.getUserName());
+
+      final TextView mail = (TextView)v.findViewById(R.id.txtMail);
+      mail.setText(currentUser.getMail());
+
+      final View view = v.findViewById(R.id.dummyview_bg);
+      view.setBackgroundColor(currentUser.getRgbColor());
+      view.invalidate();
+
+      return v;
+    }
+
+  }
 }

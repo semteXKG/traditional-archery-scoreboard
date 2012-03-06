@@ -8,9 +8,7 @@
         android:id="@+id/lvUsers"
         android:layout_width="fill_parent"
         android:layout_height="0dip"
-        android:layout_weight="1.0"
-        android:layout_marginLeft="5dp"
-        android:layout_marginRight="5dp">
+        android:layout_weight="1.0">
     </ListView>
 
     <LinearLayout
