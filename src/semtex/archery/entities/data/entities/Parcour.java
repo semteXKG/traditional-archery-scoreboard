@@ -1,10 +1,3 @@
-/**********************************************************************************************************************
- * Parcour
- * 
- * created Mar 6, 2012 by semteX
- * 
- * (c) 2012 APEX gaming technology GmbH
- **********************************************************************************************************************/
 
 package semtex.archery.entities.data.entities;
 
@@ -31,7 +24,7 @@ public class Parcour implements Serializable {
   @DatabaseField()
   private String city;
 
-  @DatabaseField(columnName = "createdAt")
+  @DatabaseField(columnName = "created_at")
   private Date created;
 
   @DatabaseField()

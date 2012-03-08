@@ -1,14 +1,8 @@
-/**********************************************************************************************************************
- * Revision
- * 
- * created Mar 6, 2012 by semteX
- * 
- * (c) 2012 APEX gaming technology GmbH
- **********************************************************************************************************************/
 
 package semtex.archery.entities.data.entities;
 
 import java.io.Serializable;
+import java.util.Date;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
@@ -30,9 +24,19 @@ public class Version implements Serializable {
   @DatabaseField()
   private String name;
 
+  @DatabaseField(columnName = "created_at")
+  private Date created;
+
 
   public Version() {
 
+  }
+
+
+  public Version(final String name, final Parcour parcour) {
+    this.name = name;
+    this.parcour = parcour;
+    created = new Date();
   }
 
 

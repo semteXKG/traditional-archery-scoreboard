@@ -6,9 +6,7 @@ package semtex.archery.entities.data;
 
 import java.sql.SQLException;
 
-import semtex.archery.entities.data.entities.Parcour;
-import semtex.archery.entities.data.entities.User;
-import semtex.archery.entities.data.entities.Version;
+import semtex.archery.entities.data.entities.*;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
@@ -31,6 +29,14 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
   private static final int DATABASE_VERSION = 6;
 
   private RuntimeExceptionDao<User, Long> userDao;
+
+  private RuntimeExceptionDao<Target, Long> targetDao;
+
+  private RuntimeExceptionDao<TargetHit, Long> targetHitDao;
+
+  private RuntimeExceptionDao<UserVisit, Long> userVisitDao;
+
+  private RuntimeExceptionDao<Visit, Long> visitDao;
 
   private RuntimeExceptionDao<Parcour, Long> parcourDao;
 
@@ -55,6 +61,10 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
       TableUtils.createTable(connectionSource, User.class);
       TableUtils.createTable(connectionSource, Parcour.class);
       TableUtils.createTable(connectionSource, Version.class);
+      TableUtils.createTable(connectionSource, Visit.class);
+      TableUtils.createTable(connectionSource, UserVisit.class);
+      TableUtils.createTable(connectionSource, Target.class);
+      TableUtils.createTable(connectionSource, TargetHit.class);
     } catch(final SQLException e) {
       Log.e(DatabaseHelper.class.getName(), "Unable to create datbases", e);
     }
@@ -111,6 +121,58 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
       }
     }
     return versionDao;
+  }
+
+
+  public RuntimeExceptionDao<Target, Long> getTargetDao() {
+    if (targetDao == null) {
+      try {
+        final Dao<Target, Long> dao = getDao(Target.class);
+        targetDao = new RuntimeExceptionDao<Target, Long>(dao);
+      } catch(final SQLException e) {
+        Log.e(DatabaseHelper.class.getName(), "unable to create dao", e);
+      }
+    }
+    return targetDao;
+  }
+
+
+  public RuntimeExceptionDao<TargetHit, Long> getTargetHitDao() {
+    if (targetHitDao == null) {
+      try {
+        final Dao<TargetHit, Long> dao = getDao(TargetHit.class);
+        targetHitDao = new RuntimeExceptionDao<TargetHit, Long>(dao);
+      } catch(final SQLException e) {
+        Log.e(DatabaseHelper.class.getName(), "unable to create dao", e);
+      }
+    }
+    return targetHitDao;
+  }
+
+
+  public RuntimeExceptionDao<UserVisit, Long> getUserVisitDao() {
+    if (userVisitDao == null) {
+      try {
+        final Dao<UserVisit, Long> dao = getDao(UserVisit.class);
+        userVisitDao = new RuntimeExceptionDao<UserVisit, Long>(dao);
+      } catch(final SQLException e) {
+        Log.e(DatabaseHelper.class.getName(), "unable to create dao", e);
+      }
+    }
+    return userVisitDao;
+  }
+
+
+  public RuntimeExceptionDao<Visit, Long> getVisitDao() {
+    if (visitDao == null) {
+      try {
+        final Dao<Visit, Long> dao = getDao(Visit.class);
+        visitDao = new RuntimeExceptionDao<Visit, Long>(dao);
+      } catch(final SQLException e) {
+        Log.e(DatabaseHelper.class.getName(), "unable to create dao", e);
+      }
+    }
+    return visitDao;
   }
 
 }

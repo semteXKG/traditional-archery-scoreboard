@@ -1,27 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"    
+    android:layout_width="fill_parent"
     android:layout_height="match_parent"
-    android:paddingTop="5dip"
-    android:paddingBottom="5dip"
-    android:orientation="horizontal" >
-    
+    android:orientation="horizontal" android:padding="5dip" android:paddingTop="5dip">
+
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/ckbUserSelected" 
+        android:gravity="center"
+        />
     <LinearLayout
         android:id="@+id/linearLayout1"
         android:layout_width="fill_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:layout_weight="0.9">
-        
+        android:layout_weight="0.9" android:paddingLeft="10dip">
 
-        <TextView
+        <CheckedTextView
             android:id="@+id/txtUsername"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text=""
             android:textAppearance="?android:attr/textAppearanceLarge" />
 
-        <TextView
+        <CheckedTextView
             android:id="@+id/txtMail"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

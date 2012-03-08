@@ -7,6 +7,8 @@ import semtex.archery.entities.data.DatabaseHelper;
 import semtex.archery.entities.data.entities.User;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.GradientDrawable.Orientation;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -90,9 +92,9 @@ public class UserManager extends OrmLiteBaseActivity<DatabaseHelper> {
       final TextView mail = (TextView)v.findViewById(R.id.txtMail);
       mail.setText(currentUser.getMail());
 
-      final View view = v.findViewById(R.id.dummyview_bg);
-      view.setBackgroundColor(currentUser.getRgbColor());
-      view.invalidate();
+      final GradientDrawable gd =
+          new GradientDrawable(Orientation.RIGHT_LEFT, new int[] { currentUser.getRgbColor() & 0x77FFFFFF, 0x0 });
+      v.setBackgroundDrawable(gd);
 
       return v;
     }
