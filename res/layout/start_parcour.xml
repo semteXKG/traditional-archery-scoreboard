@@ -27,8 +27,8 @@
     </LinearLayout>
 
     <ListView
-        android:id="@+id/lvUsers"
-        android:layout_width="match_parent"
+        android:id="@+id/lvUsersAddToParcour"
+        android:layout_width="fill_parent"
         android:layout_weight="1.0"
         android:layout_height="0dip" >
         

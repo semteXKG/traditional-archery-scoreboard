@@ -3,6 +3,8 @@ package semtex.archery.entities.data.entities;
 
 import java.io.Serializable;
 
+import semtex.archery.entities.data.dao.TargetDao;
+
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
@@ -11,16 +13,20 @@ import com.j256.ormlite.table.DatabaseTable;
  * @author semteX
  * 
  */
-@DatabaseTable(tableName = "target")
+@DatabaseTable(tableName = "target", daoClass = TargetDao.class)
 public class Target implements Serializable {
+
+  public static final String VERSION = "version";
+
+  public static final String TARGETNUMBER = "target_number";
 
   @DatabaseField(generatedId = true)
   private Long id;
 
-  @DatabaseField
+  @DatabaseField(columnName = TARGETNUMBER)
   private Integer targetNumber;
 
-  @DatabaseField(foreign = true)
+  @DatabaseField(foreign = true, columnName = VERSION)
   private Version version;
 
   @DatabaseField

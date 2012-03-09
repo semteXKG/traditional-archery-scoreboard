@@ -6,6 +6,10 @@ package semtex.archery.entities.data;
 
 import java.sql.SQLException;
 
+import semtex.archery.entities.data.dao.ITargetDao;
+import semtex.archery.entities.data.dao.TargetRuntimeExceptionDao;
+import semtex.archery.entities.data.dao.VisitDao;
+import semtex.archery.entities.data.dao.VisitRuntimeExceptionDao;
 import semtex.archery.entities.data.entities.*;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
@@ -30,13 +34,13 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 
   private RuntimeExceptionDao<User, Long> userDao;
 
-  private RuntimeExceptionDao<Target, Long> targetDao;
+  private TargetRuntimeExceptionDao targetDao;
 
   private RuntimeExceptionDao<TargetHit, Long> targetHitDao;
 
   private RuntimeExceptionDao<UserVisit, Long> userVisitDao;
 
-  private RuntimeExceptionDao<Visit, Long> visitDao;
+  private VisitRuntimeExceptionDao visitDao;
 
   private RuntimeExceptionDao<Parcour, Long> parcourDao;
 
@@ -124,11 +128,11 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
   }
 
 
-  public RuntimeExceptionDao<Target, Long> getTargetDao() {
+  public TargetRuntimeExceptionDao getTargetDao() {
     if (targetDao == null) {
       try {
-        final Dao<Target, Long> dao = getDao(Target.class);
-        targetDao = new RuntimeExceptionDao<Target, Long>(dao);
+        final ITargetDao dao = getDao(Target.class);
+        targetDao = new TargetRuntimeExceptionDao(dao);
       } catch(final SQLException e) {
         Log.e(DatabaseHelper.class.getName(), "unable to create dao", e);
       }
@@ -163,11 +167,11 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
   }
 
 
-  public RuntimeExceptionDao<Visit, Long> getVisitDao() {
+  public VisitRuntimeExceptionDao getVisitDao() {
     if (visitDao == null) {
       try {
-        final Dao<Visit, Long> dao = getDao(Visit.class);
-        visitDao = new RuntimeExceptionDao<Visit, Long>(dao);
+        final VisitDao dao = getDao(Visit.class);
+        visitDao = new VisitRuntimeExceptionDao(dao);
       } catch(final SQLException e) {
         Log.e(DatabaseHelper.class.getName(), "unable to create dao", e);
       }

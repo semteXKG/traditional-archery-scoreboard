@@ -1,20 +1,16 @@
 
 package semtex.archery;
 
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import semtex.archery.entities.data.DatabaseHelper;
 import semtex.archery.entities.data.entities.*;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.GradientDrawable.Orientation;
 import android.os.Bundle;
-import android.util.Log;
-import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,6 +27,8 @@ import com.j256.ormlite.dao.RuntimeExceptionDao;
 public class StartParcour extends OrmLiteBaseActivity<DatabaseHelper> {
 
   public static final String TAG = String.class.getName();
+
+  private final Set<User> selectedUsers = new HashSet<User>();
 
 
   @Override
@@ -54,6 +52,7 @@ public class StartParcour extends OrmLiteBaseActivity<DatabaseHelper> {
             final EditText et = (EditText)d.findViewById(R.id.txtParcour);
             final Parcour p = new Parcour();
             p.setName(et.getText().toString());
+            p.setCreated(new Date());
             getHelper().getParcourDao().create(p);
             d.dismiss();
             fillParcours();
@@ -63,7 +62,29 @@ public class StartParcour extends OrmLiteBaseActivity<DatabaseHelper> {
       }
     });
 
-    final ListView lv = (ListView)findViewById(R.id.lvUsers);
+    fillUsers();
+
+    final ListView lv = (ListView)findViewById(R.id.lvUsersAddToParcour);
+
+    lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+      public void onItemClick(final AdapterView<?> av, final View v, final int pos, final long id) {
+        final User user = (User)lv.getAdapter().getItem(pos);
+        final CheckBox checkBox = (CheckBox)v.findViewById(R.id.ckbUserSelected);
+        if (checkBox.isChecked()) {
+          selectedUsers.remove(user);
+          checkBox.setChecked(false);
+        } else {
+          selectedUsers.add(user);
+          checkBox.setChecked(true);
+        }
+
+      }
+
+    });
+
+    lv.setItemsCanFocus(false);
+    lv.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
 
     final Button btnStart = (Button)findViewById(R.id.btnStart);
     btnStart.setOnClickListener(new View.OnClickListener() {
@@ -75,32 +96,18 @@ public class StartParcour extends OrmLiteBaseActivity<DatabaseHelper> {
     });
 
     fillParcours();
-    fillUsers();
   }
 
 
   protected void startNewParcourRound(final Parcour parcour) {
 
     if (parcour == null) {
-      Toast.makeText(getApplicationContext(), "Please select a parcour first!", Toast.LENGTH_SHORT);
+      Toast.makeText(getApplicationContext(), "Please select a parcour first!", Toast.LENGTH_SHORT).show();
       return;
     }
 
-    final ListView lv = (ListView)findViewById(R.id.lvUsers);
-
-    final List<User> users = new LinkedList<User>();
-    final SparseBooleanArray positions = lv.getCheckedItemPositions();
-    Log.i(TAG, lv.getCheckedItemPosition() + "");
-    for (int i = 0; i < positions.size(); i++) {
-      if (positions.valueAt(i)) {
-        final User item = (User)lv.getAdapter().getItem(positions.keyAt(i));
-        Log.i(TAG, item + " was selected");
-        users.add(item);
-      }
-    }
-
-    if (users.size() == 0) {
-      Toast.makeText(getApplicationContext(), "Select at least one participant!", Toast.LENGTH_SHORT);
+    if (selectedUsers.size() == 0) {
+      Toast.makeText(getApplicationContext(), "Select at least one participant!", Toast.LENGTH_SHORT).show();
       return;
     }
 
@@ -108,26 +115,23 @@ public class StartParcour extends OrmLiteBaseActivity<DatabaseHelper> {
     final Version vTmp = new Version(UUID.randomUUID().toString(), parcour);
     getHelper().getVersionDao().create(vTmp);
 
+    // Insert the first target
+    final Target target = new Target(1, vTmp);
+    getHelper().getTargetDao().create(target);
+
     // now let's create a visit
     final Visit visit = new Visit(new Date(), vTmp);
     getHelper().getVisitDao().create(visit);
 
     // now let's add our fellow friends
-    for (final User user : users) {
+    for (final User user : selectedUsers) {
       final UserVisit uv = new UserVisit(user, visit);
       getHelper().getUserVisitDao().create(uv);
     }
-  }
 
-
-  private void fillUsers() {
-    final RuntimeExceptionDao<User, Long> userDao = getHelper().getUserDao();
-    final List<User> users = userDao.queryForAll();
-    final ListView listView = (ListView)findViewById(R.id.lvUsers);
-    final ArrayAdapter<User> adapter = new UserAdapter(this, R.layout.user_selection_row, users);
-    listView.setAdapter(adapter);
-    listView.setItemsCanFocus(false);
-    listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+    final Intent i = new Intent(getApplicationContext(), Scoring.class);
+    startActivity(i);
+    finish();
   }
 
 
@@ -136,6 +140,16 @@ public class StartParcour extends OrmLiteBaseActivity<DatabaseHelper> {
     super.onResume();
     fillParcours();
     fillUsers();
+  }
+
+
+  private void fillUsers() {
+    final RuntimeExceptionDao<User, Long> userDao = getHelper().getUserDao();
+    final List<User> users = userDao.queryForAll();
+    final ListView listView = (ListView)findViewById(R.id.lvUsersAddToParcour);
+    final ArrayAdapter<User> adapter = new UserAdapter(this, R.layout.user_selection_row, users);
+    listView.setAdapter(adapter);
+    selectedUsers.clear();
   }
 
 
@@ -174,15 +188,6 @@ public class StartParcour extends OrmLiteBaseActivity<DatabaseHelper> {
       final GradientDrawable gd =
           new GradientDrawable(Orientation.RIGHT_LEFT, new int[] { currentUser.getRgbColor() & 0x77FFFFFF, 0x0 });
       v.setBackgroundDrawable(gd);
-
-      v.setOnClickListener(new View.OnClickListener() {
-
-        public void onClick(final View v) {
-          final CheckBox box = (CheckBox)v.findViewById(R.id.ckbUserSelected);
-          box.setChecked(!box.isChecked());
-        }
-      });
-
       return v;
     }
   }

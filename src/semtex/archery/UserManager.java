@@ -95,7 +95,6 @@ public class UserManager extends OrmLiteBaseActivity<DatabaseHelper> {
       final GradientDrawable gd =
           new GradientDrawable(Orientation.RIGHT_LEFT, new int[] { currentUser.getRgbColor() & 0x77FFFFFF, 0x0 });
       v.setBackgroundDrawable(gd);
-
       return v;
     }
 
