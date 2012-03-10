@@ -28,4 +28,13 @@ public class TargetRuntimeExceptionDao extends RuntimeExceptionDao<Target, Long>
     }
   }
 
+
+  public Target findTargetByTargetNumber(final Integer targetNumber, final Version v) {
+    try {
+      return dao.findTargetByTargetNumber(targetNumber, v);
+    } catch(final SQLException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
 }

@@ -8,6 +8,7 @@ import semtex.archery.entities.data.entities.Version;
 
 import com.j256.ormlite.dao.BaseDaoImpl;
 import com.j256.ormlite.stmt.QueryBuilder;
+import com.j256.ormlite.stmt.Where;
 import com.j256.ormlite.support.ConnectionSource;
 
 
@@ -23,6 +24,15 @@ public class TargetDao extends BaseDaoImpl<Target, Long> implements ITargetDao {
     qb.where().eq(Target.VERSION, v);
     qb.limit(1L);
     qb.orderBy(Target.TARGETNUMBER, false);
+    return qb.queryForFirst();
+  }
+
+
+  public Target findTargetByTargetNumber(final Integer targetNumber, final Version v) throws SQLException {
+    final QueryBuilder<Target, Long> qb = queryBuilder();
+    final Where<Target, Long> where = qb.where();
+    where.and(where.eq(Target.VERSION, v), where.eq(Target.TARGETNUMBER, targetNumber));
+    qb.setWhere(where);
     return qb.queryForFirst();
   }
 

@@ -3,12 +3,18 @@ package semtex.archery.entities.data.entities;
 
 import java.io.Serializable;
 
+import semtex.archery.entities.data.dao.TargetHitDao;
+
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
 
-@DatabaseTable(tableName = "target_hit")
+@DatabaseTable(tableName = "target_hit", daoClass = TargetHitDao.class)
 public class TargetHit implements Serializable {
+
+  public static final String TARGET = "target";
+
+  public static final String USER_VISIT = "user";
 
   @DatabaseField(generatedId = true)
   private Long id;
@@ -16,10 +22,13 @@ public class TargetHit implements Serializable {
   @DatabaseField
   private Integer points;
 
-  @DatabaseField(foreign = true)
+  @DatabaseField
+  private Integer nrOfArrows;
+
+  @DatabaseField(foreign = true, columnName = USER_VISIT)
   private UserVisit user;
 
-  @DatabaseField(foreign = true)
+  @DatabaseField(foreign = true, columnName = TARGET)
   private Target target;
 
 
@@ -28,8 +37,15 @@ public class TargetHit implements Serializable {
   }
 
 
-  public TargetHit(final Integer points, final UserVisit user, final Target target) {
+  public TargetHit(final UserVisit uv, final Target target) {
+    this.user = uv;
+    this.target = target;
+  }
+
+
+  public TargetHit(final Integer points, final Integer nrOfArrows, final UserVisit user, final Target target) {
     this.points = points;
+    this.nrOfArrows = nrOfArrows;
     this.user = user;
     this.target = target;
   }
@@ -72,6 +88,22 @@ public class TargetHit implements Serializable {
 
   public void setTarget(final Target target) {
     this.target = target;
+  }
+
+
+  @Override
+  public String toString() {
+    return "TargetHit [id=" + id + ", points=" + points + ", nrOfArrows=" + nrOfArrows + "]";
+  }
+
+
+  public Integer getNrOfArrows() {
+    return nrOfArrows;
+  }
+
+
+  public void setNrOfArrows(final Integer nrOfArrows) {
+    this.nrOfArrows = nrOfArrows;
   }
 
 }

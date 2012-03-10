@@ -6,10 +6,7 @@ package semtex.archery.entities.data;
 
 import java.sql.SQLException;
 
-import semtex.archery.entities.data.dao.ITargetDao;
-import semtex.archery.entities.data.dao.TargetRuntimeExceptionDao;
-import semtex.archery.entities.data.dao.VisitDao;
-import semtex.archery.entities.data.dao.VisitRuntimeExceptionDao;
+import semtex.archery.entities.data.dao.*;
 import semtex.archery.entities.data.entities.*;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
@@ -36,7 +33,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 
   private TargetRuntimeExceptionDao targetDao;
 
-  private RuntimeExceptionDao<TargetHit, Long> targetHitDao;
+  private TargetHitRuntimeExceptionDao targetHitDao;
 
   private RuntimeExceptionDao<UserVisit, Long> userVisitDao;
 
@@ -141,11 +138,11 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
   }
 
 
-  public RuntimeExceptionDao<TargetHit, Long> getTargetHitDao() {
+  public TargetHitRuntimeExceptionDao getTargetHitDao() {
     if (targetHitDao == null) {
       try {
-        final Dao<TargetHit, Long> dao = getDao(TargetHit.class);
-        targetHitDao = new RuntimeExceptionDao<TargetHit, Long>(dao);
+        final ITargetHitDao dao = getDao(TargetHit.class);
+        targetHitDao = new TargetHitRuntimeExceptionDao(dao);
       } catch(final SQLException e) {
         Log.e(DatabaseHelper.class.getName(), "unable to create dao", e);
       }

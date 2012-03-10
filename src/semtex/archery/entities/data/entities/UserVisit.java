@@ -15,7 +15,7 @@ public class UserVisit implements Serializable {
   @DatabaseField(generatedId = true)
   private Long id;
 
-  @DatabaseField(foreign = true)
+  @DatabaseField(foreign = true, foreignAutoRefresh = true)
   private User user;
 
   @DatabaseField(foreign = true)
