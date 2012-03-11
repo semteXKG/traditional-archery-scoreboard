@@ -1,10 +1,7 @@
 
 package semtex.archery;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import semtex.archery.entities.data.DatabaseHelper;
 import semtex.archery.entities.data.entities.Target;
@@ -12,6 +9,7 @@ import semtex.archery.entities.data.entities.TargetHit;
 import semtex.archery.entities.data.entities.UserVisit;
 import semtex.archery.entities.data.entities.Visit;
 import android.content.Context;
+import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.GradientDrawable.Orientation;
 import android.os.Bundle;
@@ -36,8 +34,6 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
   private static final int MAX_ARROWS = 4;
 
   private final Map<UserVisit, TargetHit> userScoring = new HashMap<UserVisit, TargetHit>();
-
-  private final Map<UserVisit, Integer> currentArrow = new HashMap<UserVisit, Integer>();
 
   private final int scoringMatrix[][] = new int[5][];
 
@@ -164,7 +160,7 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
         userScoring.put(userVisit, th);
       } else {
         Log.i(TAG, "Creating new TargetHit for " + userVisit);
-        final TargetHit newHit = new TargetHit(0, 1, userVisit, currentTarget);
+        final TargetHit newHit = new TargetHit(null, 1, userVisit, currentTarget);
         userScoring.put(userVisit, newHit);
       }
     }
@@ -181,6 +177,9 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
     @Override
     public View getView(final int position, final View convertView, final ViewGroup parent) {
       View rowView = convertView;
+
+      final Map<ToggleButton, Integer> scoringButtons = new HashMap<ToggleButton, Integer>();
+
       final UserVisit uv = getItem(position);
       if (rowView == null) {
         final LayoutInflater li = (LayoutInflater)getSystemService(LAYOUT_INFLATER_SERVICE);
@@ -188,6 +187,10 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
       }
 
       final View finalRowView = rowView;
+
+      scoringButtons.put((ToggleButton)rowView.findViewById(R.id.btnLow), 2);
+      scoringButtons.put((ToggleButton)rowView.findViewById(R.id.btnMed), 1);
+      scoringButtons.put((ToggleButton)rowView.findViewById(R.id.btnHigh), 0);
 
       final TextView userName = (TextView)rowView.findViewById(R.id.txtUsername);
       userName.setText(uv.getUser().getUserName());
@@ -201,14 +204,14 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
       btnArrows.setOnClickListener(new View.OnClickListener() {
 
         public void onClick(final View v) {
-          final int usedArrows = incrementUsedArrows();
-          btnArrows.setText("-" + usedArrows + "-");
-          updateHitButtons(finalRowView, usedArrows);
+          final TargetHit th = userScoring.get(uv);
+          incrementUsedArrows(th);
+          updateHitButtons(finalRowView, scoringButtons, th);
         }
 
 
-        private int incrementUsedArrows() {
-          final TargetHit th = userScoring.get(uv);
+        private int incrementUsedArrows(final TargetHit th) {
+
           final int usedArrows = th.getNrOfArrows() % MAX_ARROWS + 1;
           th.setNrOfArrows(usedArrows);
           return usedArrows;
@@ -216,34 +219,25 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
 
       });
 
-      updateHitButtons(finalRowView, userScoring.get(uv).getNrOfArrows());
+      updateHitButtons(finalRowView, scoringButtons, userScoring.get(uv));
 
-      // This is a total hack, ignore it for the time being, will be refactored ASAP
-      final Button btnLow = (Button)rowView.findViewById(R.id.btnLow);
-      btnLow.setOnClickListener(new View.OnClickListener() {
+      for (final ToggleButton tb : scoringButtons.keySet()) {
+        tb.setOnClickListener(new View.OnClickListener() {
 
-        public void onClick(final View v) {
-          final TargetHit th = userScoring.get(uv);
-          th.setPoints(scoringMatrix[th.getNrOfArrows()][2]);
-        }
-      });
-
-      final Button btnMid = (Button)rowView.findViewById(R.id.btnMed);
-      btnMid.setOnClickListener(new View.OnClickListener() {
-
-        public void onClick(final View v) {
-          final TargetHit th = userScoring.get(uv);
-          th.setPoints(scoringMatrix[th.getNrOfArrows()][1]);
-        }
-      });
-      final Button btnHigh = (Button)rowView.findViewById(R.id.btnHigh);
-      btnHigh.setOnClickListener(new View.OnClickListener() {
-
-        public void onClick(final View v) {
-          final TargetHit th = userScoring.get(uv);
-          th.setPoints(scoringMatrix[th.getNrOfArrows()][0]);
-        }
-      });
+          public void onClick(final View v) {
+            final ToggleButton btn = (ToggleButton)v;
+            final TargetHit th = userScoring.get(uv);
+            if (btn.isChecked()) {
+              th.setPoints(scoringMatrix[th.getNrOfArrows()][scoringButtons.get(btn)]);
+              // the button handed over here is the one that WON'T be disabled!
+              updateHitButtons(finalRowView, scoringButtons, th);
+            } else {
+              th.setPoints(null);
+              updateHitButtons(finalRowView, scoringButtons, th);
+            }
+          }
+        });
+      }
 
       final GradientDrawable gd =
           new GradientDrawable(Orientation.RIGHT_LEFT, new int[] { uv.getUser().getRgbColor() & 0x77FFFFFF, 0x0 });
@@ -252,16 +246,65 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
     }
 
 
-    private void updateHitButtons(final View v, final int arr) {
+    private void updateHitButtons(final View v, final Map<ToggleButton, Integer> buttonContainer, final TargetHit th) {
       final Button btnArrow = (Button)v.findViewById(R.id.btnNoOfArrows);
-      final Button btnLow = (Button)v.findViewById(R.id.btnLow);
-      final Button btnMid = (Button)v.findViewById(R.id.btnMed);
-      final Button btnHigh = (Button)v.findViewById(R.id.btnHigh);
+      btnArrow.setText("-" + arrowBtnDesc[th.getNrOfArrows()] + "-");
 
-      btnArrow.setText("-" + arrowBtnDesc[arr] + "-");
-      btnHigh.setText("-" + scoringMatrix[arr][0] + "-");
-      btnMid.setText("-" + scoringMatrix[arr][1] + "-");
-      btnLow.setText("-" + scoringMatrix[arr][2] + "-");
+      for (final ToggleButton btn : buttonContainer.keySet()) {
+        final String buttonText = "-" + scoringMatrix[th.getNrOfArrows()][buttonContainer.get(btn)] + "-";
+        btn.setText(buttonText);
+        btn.setTextOn(buttonText);
+        btn.setTextOff(buttonText);
+      }
+
+      int i = 0;
+      if (th.getPoints() != null) {
+        // determine the right button - search in the index columns
+        while (i < scoringMatrix[th.getNrOfArrows()].length) {
+          if (scoringMatrix[th.getNrOfArrows()][i] == th.getPoints()) {
+            changeButtonStyles(true, findToggleButtonForIndex(buttonContainer, i), buttonContainer.keySet());
+            btnArrow.setEnabled(false);
+            break;
+          }
+          i++;
+        }
+      }
+      if (th.getPoints() == null || i == scoringMatrix[th.getNrOfArrows()].length) {
+        changeButtonStyles(false, null, buttonContainer.keySet());
+        btnArrow.setEnabled(true);
+      }
+    }
+
+
+    private ToggleButton findToggleButtonForIndex(final Map<ToggleButton, Integer> buttonContainer, final int i) {
+      for (final Map.Entry<ToggleButton, Integer> entry : buttonContainer.entrySet()) {
+        if (entry.getValue().intValue() == i) {
+          return entry.getKey();
+        }
+      }
+      return null;
+    }
+
+
+    protected void changeButtonStyles(final boolean pointsSelected, final ToggleButton toggleButton,
+        final Collection<ToggleButton> allToggleButtons) {
+      final Set<ToggleButton> toggleButtons = new HashSet<ToggleButton>(allToggleButtons);
+
+      int visibility;
+
+      if (pointsSelected) {
+        visibility = View.INVISIBLE;
+        toggleButton.setSelected(true);
+        toggleButton.setTypeface(null, Typeface.BOLD);
+      } else {
+        visibility = View.VISIBLE;
+      }
+
+      toggleButtons.remove(toggleButton);
+      for (final ToggleButton visStateBtn : toggleButtons) {
+        visStateBtn.setTypeface(null, Typeface.NORMAL);
+        visStateBtn.setVisibility(visibility);
+      }
     }
   }
 }

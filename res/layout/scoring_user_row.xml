@@ -2,14 +2,14 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/RelativeLayout1"
     android:layout_width="match_parent"
-    android:layout_height="match_parent" >
+    android:layout_height="wrap_content">
 
     <TextView
         android:id="@+id/txtUsername"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Small Text"
-        android:textAppearance="?android:attr/textAppearanceSmall" />
+        android:text=""
+        android:textAppearance="?android:attr/textAppearanceSmall" android:layout_marginTop="15dip"/>
 
     <TextView
         android:id="@+id/txtPoints"
@@ -17,7 +17,8 @@
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
-        android:text="Small Text"
+        android:layout_marginTop="15dip"
+        android:text=""
         android:textAppearance="?android:attr/textAppearanceSmall" />
 
     <Button
@@ -28,9 +29,10 @@
         android:layout_below="@+id/txtUsername"
         android:layout_marginLeft="15dip"
         android:layout_marginTop="10dip"
+        android:layout_marginBottom="15dip"
         android:text="" />
 
-    <Button
+    <ToggleButton
         android:id="@+id/btnLow"
         android:layout_width="60dip"
         android:layout_height="60dip"
@@ -38,24 +40,28 @@
         android:layout_below="@+id/txtPoints"
         android:layout_marginRight="15dip"
         android:layout_marginTop="10dip"
+        android:layout_marginBottom="15dip"        
+        android:background="@android:drawable/btn_default"
         android:text="" />
 
-    <Button
+    <ToggleButton
         android:id="@+id/btnMed"
         android:layout_width="60dip"
         android:layout_height="60dip"
         android:layout_alignBaseline="@+id/btnLow"
         android:layout_alignBottom="@+id/btnLow"
         android:layout_toLeftOf="@+id/btnLow"
+        android:background="@android:drawable/btn_default"        
         android:text="" />
 
-    <Button
+    <ToggleButton
         android:id="@+id/btnHigh"
         android:layout_width="60dip"
         android:layout_height="60dip"
         android:layout_alignBaseline="@+id/btnMed"
         android:layout_alignBottom="@+id/btnMed"
         android:layout_toLeftOf="@+id/btnMed"
+        android:background="@android:drawable/btn_default"        
         android:text="" />
 
 </RelativeLayout>
