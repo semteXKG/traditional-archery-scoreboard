@@ -33,7 +33,9 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
 
   private static final int MAX_ARROWS = 4;
 
-  private final Map<UserVisit, TargetHit> userScoring = new HashMap<UserVisit, TargetHit>();
+  private final Map<UserVisit, Integer> userPoints = new HashMap<UserVisit, Integer>();
+
+  private final Map<UserVisit, TargetHit> userTargetHits = new HashMap<UserVisit, TargetHit>();
 
   private final int scoringMatrix[][] = new int[5][];
 
@@ -102,14 +104,14 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
 
     final ListView listView = (ListView)findViewById(R.id.lvUserScoring);
     final ArrayAdapter<UserVisit> adapter =
-        new UserVisitAdapter(this, R.layout.scoring_user_row, new LinkedList(userScoring.keySet()));
+        new UserVisitAdapter(this, R.layout.scoring_user_row, new LinkedList(userTargetHits.keySet()));
     listView.setAdapter(adapter);
   }
 
 
   protected void saveResultsAndSwap(final boolean forward) {
     // Saving results to parcour page
-    for (final TargetHit th : userScoring.values()) {
+    for (final TargetHit th : userTargetHits.values()) {
       if (th.getId() == null) {
         Log.i(TAG, "Saving TH info in DB " + th);
         getHelper().getTargetHitDao().create(th);
@@ -139,6 +141,15 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
   }
 
 
+  private void initializeScoring() {
+    for (final UserVisit uv : currentVisit.getUserVisit()) {
+      final Integer points = getHelper().getTargetHitDao().calculatePointsByUser(uv);
+      userPoints.put(uv, points);
+      Log.i(TAG, points + " for user " + uv.getUser().getUserName());
+    }
+  }
+
+
   private void fetchSetupData() {
     currentVisit = getHelper().getVisitDao().findLastOpenVisit();
     Log.i(TAG, "Found: " + currentVisit);
@@ -146,22 +157,23 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
     Log.i(TAG, "current Target set to: " + currentTarget);
 
     fillTargetHitMap();
+    initializeScoring();
   }
 
 
   private void fillTargetHitMap() {
-    userScoring.clear();
+    userTargetHits.clear();
 
     final ForeignCollection<UserVisit> uv = currentVisit.getUserVisit();
     for (final UserVisit userVisit : uv) {
       final TargetHit th = getHelper().getTargetHitDao().findTargetHitByUserVisitAndTarget(userVisit, currentTarget);
       if (th != null) {
         Log.i(TAG, "TargetHit " + th + " found for " + userVisit);
-        userScoring.put(userVisit, th);
+        userTargetHits.put(userVisit, th);
       } else {
         Log.i(TAG, "Creating new TargetHit for " + userVisit);
         final TargetHit newHit = new TargetHit(null, 1, userVisit, currentTarget);
-        userScoring.put(userVisit, newHit);
+        userTargetHits.put(userVisit, newHit);
       }
     }
     Log.i(TAG, "added " + uv.size() + " players");
@@ -199,14 +211,14 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
       points.setText("-");
 
       final Button btnArrows = (Button)rowView.findViewById(R.id.btnNoOfArrows);
-      btnArrows.setText(arrowBtnDesc[userScoring.get(uv).getNrOfArrows()]);
+      btnArrows.setText(arrowBtnDesc[userTargetHits.get(uv).getNrOfArrows()]);
 
       btnArrows.setOnClickListener(new View.OnClickListener() {
 
         public void onClick(final View v) {
-          final TargetHit th = userScoring.get(uv);
+          final TargetHit th = userTargetHits.get(uv);
           incrementUsedArrows(th);
-          updateHitButtons(finalRowView, scoringButtons, th);
+          updateHitButtons(finalRowView, scoringButtons, th, userPoints.get(uv));
         }
 
 
@@ -219,36 +231,51 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
 
       });
 
-      updateHitButtons(finalRowView, scoringButtons, userScoring.get(uv));
+      updateHitButtons(finalRowView, scoringButtons, userTargetHits.get(uv), userPoints.get(uv));
 
       for (final ToggleButton tb : scoringButtons.keySet()) {
         tb.setOnClickListener(new View.OnClickListener() {
 
           public void onClick(final View v) {
             final ToggleButton btn = (ToggleButton)v;
-            final TargetHit th = userScoring.get(uv);
+            final TargetHit th = userTargetHits.get(uv);
             if (btn.isChecked()) {
-              th.setPoints(scoringMatrix[th.getNrOfArrows()][scoringButtons.get(btn)]);
-              // the button handed over here is the one that WON'T be disabled!
-              updateHitButtons(finalRowView, scoringButtons, th);
+              setPoints(uv, th, scoringMatrix[th.getNrOfArrows()][scoringButtons.get(btn)]);
             } else {
-              th.setPoints(null);
-              updateHitButtons(finalRowView, scoringButtons, th);
+              setPoints(uv, th, null);
             }
+            updateHitButtons(finalRowView, scoringButtons, th, userPoints.get(uv));
           }
+
         });
       }
 
       final GradientDrawable gd =
-          new GradientDrawable(Orientation.RIGHT_LEFT, new int[] { uv.getUser().getRgbColor() & 0x77FFFFFF, 0x0 });
+          new GradientDrawable(Orientation.RIGHT_LEFT, new int[] {
+              uv.getUser().getRgbColor() & 0x00FFFFFF | 0xAA000000, 0x0 });
       rowView.setBackgroundDrawable(gd);
       return rowView;
     }
 
 
-    private void updateHitButtons(final View v, final Map<ToggleButton, Integer> buttonContainer, final TargetHit th) {
+    private void setPoints(final UserVisit visit, final TargetHit th, final Integer pointsArg) {
+      if (pointsArg == null) {
+        userPoints.put(visit, userPoints.get(visit) - th.getPoints());
+        th.setPoints(null);
+      } else {
+        userPoints.put(visit, userPoints.get(visit) + pointsArg);
+        th.setPoints(pointsArg);
+      }
+    }
+
+
+    private void updateHitButtons(final View v, final Map<ToggleButton, Integer> buttonContainer, final TargetHit th,
+        final int points) {
       final Button btnArrow = (Button)v.findViewById(R.id.btnNoOfArrows);
       btnArrow.setText("-" + arrowBtnDesc[th.getNrOfArrows()] + "-");
+
+      final TextView txtPoints = (TextView)v.findViewById(R.id.txtPoints);
+      txtPoints.setText(points + " pts");
 
       for (final ToggleButton btn : buttonContainer.keySet()) {
         final String buttonText = "-" + scoringMatrix[th.getNrOfArrows()][buttonContainer.get(btn)] + "-";
@@ -294,7 +321,8 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
 
       if (pointsSelected) {
         visibility = View.INVISIBLE;
-        toggleButton.setSelected(true);
+        toggleButton.setChecked(true);
+        toggleButton.setVisibility(View.VISIBLE);
         toggleButton.setTypeface(null, Typeface.BOLD);
       } else {
         visibility = View.VISIBLE;

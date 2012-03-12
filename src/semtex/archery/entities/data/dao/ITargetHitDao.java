@@ -14,4 +14,6 @@ public interface ITargetHitDao extends Dao<TargetHit, Long> {
 
   TargetHit findTargetHitByUserVisitAndTarget(UserVisit user, Target target) throws SQLException;
 
+
+  Integer calculatePointsByUser(final UserVisit userVisit) throws SQLException;
 }

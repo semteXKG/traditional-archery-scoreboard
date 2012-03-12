@@ -1,12 +1,15 @@
 
 package semtex.archery;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import semtex.archery.entities.data.DatabaseHelper;
 import semtex.archery.entities.data.entities.*;
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.GradientDrawable.Orientation;
@@ -34,6 +37,7 @@ public class StartParcour extends OrmLiteBaseActivity<DatabaseHelper> {
   @Override
   protected void onCreate(final Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+
     setContentView(R.layout.start_parcour);
     final StartParcour instance = this;
 
@@ -96,6 +100,34 @@ public class StartParcour extends OrmLiteBaseActivity<DatabaseHelper> {
     });
 
     fillParcours();
+
+    checkForOpenParcours();
+  }
+
+
+  private void checkForOpenParcours() {
+    final Visit visit = getHelper().getVisitDao().findLastOpenVisit();
+    if (visit != null) {
+      final AlertDialog.Builder ad = new AlertDialog.Builder(this);
+      ad.setMessage("Unfinished visit from " + new SimpleDateFormat().format(visit.getBeginTime()) + " found...");
+      ad.setPositiveButton("Resume", new DialogInterface.OnClickListener() {
+
+        public void onClick(final DialogInterface dialog, final int which) {
+          final Intent i = new Intent(getApplicationContext(), Scoring.class);
+          startActivity(i);
+          finish();
+        }
+      });
+      ad.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+
+        public void onClick(final DialogInterface dialog, final int which) {
+          visit.setEndTime(new Date());
+          getHelper().getVisitDao().update(visit);
+        }
+      });
+      ad.show();
+    }
+
   }
 
 
@@ -186,7 +218,8 @@ public class StartParcour extends OrmLiteBaseActivity<DatabaseHelper> {
       mail.setText(currentUser.getMail());
 
       final GradientDrawable gd =
-          new GradientDrawable(Orientation.RIGHT_LEFT, new int[] { currentUser.getRgbColor() & 0x77FFFFFF, 0x0 });
+          new GradientDrawable(Orientation.RIGHT_LEFT, new int[] { currentUser.getRgbColor() & 0x00FFFFFF | 0xAA000000,
+              0x0 });
       v.setBackgroundDrawable(gd);
       return v;
     }

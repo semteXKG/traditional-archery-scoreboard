@@ -93,7 +93,8 @@ public class UserManager extends OrmLiteBaseActivity<DatabaseHelper> {
       mail.setText(currentUser.getMail());
 
       final GradientDrawable gd =
-          new GradientDrawable(Orientation.RIGHT_LEFT, new int[] { currentUser.getRgbColor() & 0x77FFFFFF, 0x0 });
+          new GradientDrawable(Orientation.RIGHT_LEFT, new int[] { currentUser.getRgbColor() & 0x00FFFFFF | 0xAA000000,
+              0x0 });
       v.setBackgroundDrawable(gd);
       return v;
     }

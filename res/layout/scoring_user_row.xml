@@ -1,67 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/RelativeLayout1"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/LinearLayout1"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:orientation="vertical" android:paddingBottom="20dip" android:paddingTop="20dip" android:paddingLeft="10dip" android:paddingRight="10dip">
 
-    <TextView
-        android:id="@+id/txtUsername"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text=""
-        android:textAppearance="?android:attr/textAppearanceSmall" android:layout_marginTop="15dip"/>
+    <RelativeLayout
+        android:id="@+id/relativeLayout1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:layout_marginBottom="5dip">
 
-    <TextView
-        android:id="@+id/txtPoints"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentTop="true"
-        android:layout_marginTop="15dip"
-        android:text=""
-        android:textAppearance="?android:attr/textAppearanceSmall" />
+        <TextView
+            android:id="@+id/txtPoints"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
 
-    <Button
-        android:id="@+id/btnNoOfArrows"
-        android:layout_width="60dip"
-        android:layout_height="60dip"
-        android:layout_alignParentLeft="true"
-        android:layout_below="@+id/txtUsername"
-        android:layout_marginLeft="15dip"
-        android:layout_marginTop="10dip"
-        android:layout_marginBottom="15dip"
-        android:text="" />
+        <TextView
+            android:id="@+id/txtUsername"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
 
-    <ToggleButton
-        android:id="@+id/btnLow"
-        android:layout_width="60dip"
-        android:layout_height="60dip"
-        android:layout_alignParentRight="true"
-        android:layout_below="@+id/txtPoints"
-        android:layout_marginRight="15dip"
-        android:layout_marginTop="10dip"
-        android:layout_marginBottom="15dip"        
-        android:background="@android:drawable/btn_default"
-        android:text="" />
+    </RelativeLayout>
 
-    <ToggleButton
-        android:id="@+id/btnMed"
-        android:layout_width="60dip"
-        android:layout_height="60dip"
-        android:layout_alignBaseline="@+id/btnLow"
-        android:layout_alignBottom="@+id/btnLow"
-        android:layout_toLeftOf="@+id/btnLow"
-        android:background="@android:drawable/btn_default"        
-        android:text="" />
+    <RelativeLayout
+        android:id="@+id/relativeLayout2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
 
-    <ToggleButton
-        android:id="@+id/btnHigh"
-        android:layout_width="60dip"
-        android:layout_height="60dip"
-        android:layout_alignBaseline="@+id/btnMed"
-        android:layout_alignBottom="@+id/btnMed"
-        android:layout_toLeftOf="@+id/btnMed"
-        android:background="@android:drawable/btn_default"        
-        android:text="" />
+        <ToggleButton
+            android:id="@+id/btnHigh"
+            android:layout_width="60dip"
+            android:layout_height="60dip"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:background="@android:drawable/btn_default" />
 
-</RelativeLayout>
+        <ToggleButton
+            android:id="@+id/btnMed"
+            android:layout_width="60dip"
+            android:layout_height="60dip"
+            android:layout_alignParentTop="true"
+            android:layout_toLeftOf="@+id/btnHigh"
+            android:background="@android:drawable/btn_default" android:layout_marginRight="5dip"/>
+
+        <ToggleButton
+            android:id="@+id/btnLow"
+            android:layout_width="60dip"
+            android:layout_height="60dip"
+            android:layout_alignParentTop="true"
+            android:layout_toLeftOf="@+id/btnMed"
+            android:background="@android:drawable/btn_default" android:layout_marginRight="5dip"/>
+
+        <Button
+            android:id="@+id/btnNoOfArrows"
+            android:layout_width="60dip"
+            android:layout_height="60dip"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true" />
+
+    </RelativeLayout>
+
+</LinearLayout>

@@ -29,4 +29,13 @@ public class TargetHitRuntimeExceptionDao extends RuntimeExceptionDao<TargetHit,
     }
   }
 
+
+  public Integer calculatePointsByUser(final UserVisit userVisit) {
+    try {
+      return dao.calculatePointsByUser(userVisit);
+    } catch(final SQLException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
 }

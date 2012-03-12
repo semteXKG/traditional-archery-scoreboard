@@ -18,17 +18,16 @@ public final class R {
         public static final int rect=0x7f020001;
     }
     public static final class id {
-        public static final int LinearLayout1=0x7f060011;
-        public static final int RelativeLayout1=0x7f06000a;
+        public static final int LinearLayout1=0x7f06000a;
         public static final int btnAdd=0x7f060023;
         public static final int btnAddParcour=0x7f060014;
         public static final int btnCancelUser=0x7f06001e;
-        public static final int btnHigh=0x7f060010;
+        public static final int btnHigh=0x7f06000e;
         public static final int btnHistory=0x7f060002;
-        public static final int btnLow=0x7f06000e;
+        public static final int btnLow=0x7f060010;
         public static final int btnMed=0x7f06000f;
         public static final int btnNext=0x7f060007;
-        public static final int btnNoOfArrows=0x7f06000d;
+        public static final int btnNoOfArrows=0x7f060011;
         public static final int btnPicker=0x7f06001c;
         public static final int btnPrev=0x7f060006;
         public static final int btnSave=0x7f060004;
@@ -44,6 +43,7 @@ public final class R {
         public static final int lvUsers=0x7f060021;
         public static final int lvUsersAddToParcour=0x7f060015;
         public static final int relativeLayout1=0x7f060005;
+        public static final int relativeLayout2=0x7f06000d;
         public static final int scrollView1=0x7f060016;
         public static final int spParcours=0x7f060013;
         public static final int textView1=0x7f060017;
@@ -51,9 +51,9 @@ public final class R {
         public static final int textView3=0x7f06001a;
         public static final int txtMail=0x7f060019;
         public static final int txtParcour=0x7f060003;
-        public static final int txtPoints=0x7f06000c;
+        public static final int txtPoints=0x7f06000b;
         public static final int txtTargetNumber=0x7f060008;
-        public static final int txtUsername=0x7f06000b;
+        public static final int txtUsername=0x7f06000c;
     }
     public static final class layout {
         public static final int main=0x7f030000;
