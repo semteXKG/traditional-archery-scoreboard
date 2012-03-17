@@ -24,15 +24,19 @@ public class UserVisit implements Serializable {
   @ForeignCollectionField(eager = false)
   private ForeignCollection<TargetHit> targetHits;
 
+  @DatabaseField
+  private Integer rank;
+
 
   public UserVisit() {
 
   }
 
 
-  public UserVisit(final User user, final Visit visit) {
+  public UserVisit(final User user, final Visit visit, final Integer rank) {
     this.user = user;
     this.visit = visit;
+    this.rank = rank;
   }
 
 
@@ -73,6 +77,16 @@ public class UserVisit implements Serializable {
 
   public void setTargetHits(final ForeignCollection<TargetHit> targetHits) {
     this.targetHits = targetHits;
+  }
+
+
+  public Integer getRank() {
+    return rank;
+  }
+
+
+  public void setRank(final Integer rank) {
+    this.rank = rank;
   }
 
 }

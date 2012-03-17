@@ -19,6 +19,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
 
+import com.commonsware.cwac.tlv.TouchListView;
+import com.commonsware.cwac.tlv.TouchListView.DropListener;
 import com.j256.ormlite.android.apptools.OrmLiteBaseActivity;
 import com.j256.ormlite.dao.ForeignCollection;
 
@@ -64,6 +66,15 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
         saveResultsAndSwap(false);
       }
     });
+
+    final TouchListView listView = (TouchListView)findViewById(R.id.tlvUserScoring);
+    listView.setDropListener(new DropListener() {
+
+      public void drop(final int from, final int to) {
+        Log.i(TAG, "from " + from + " to " + to);
+      }
+    });
+
     fetchSetupData();
     updateUIElements();
   }
@@ -102,9 +113,10 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
     final TextView txtTargetNumber = (TextView)findViewById(R.id.txtTargetNumber);
     txtTargetNumber.setText("Target " + currentTarget.getTargetNumber());
 
-    final ListView listView = (ListView)findViewById(R.id.lvUserScoring);
+    final TouchListView listView = (TouchListView)findViewById(R.id.tlvUserScoring);
     final ArrayAdapter<UserVisit> adapter =
         new UserVisitAdapter(this, R.layout.scoring_user_row, new LinkedList(userTargetHits.keySet()));
+    adapter.sort(new RankComparator());
     listView.setAdapter(adapter);
   }
 
@@ -273,7 +285,6 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
         final int points) {
       final Button btnArrow = (Button)v.findViewById(R.id.btnNoOfArrows);
       btnArrow.setText("-" + arrowBtnDesc[th.getNrOfArrows()] + "-");
-
       final TextView txtPoints = (TextView)v.findViewById(R.id.txtPoints);
       txtPoints.setText(points + " pts");
 
@@ -333,6 +344,22 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
         visStateBtn.setTypeface(null, Typeface.NORMAL);
         visStateBtn.setVisibility(visibility);
       }
+    }
+  }
+
+  private class RankComparator implements Comparator<UserVisit> {
+
+    public int compare(final UserVisit lhs, final UserVisit rhs) {
+      if (lhs == null && rhs == null) {
+        return 0;
+      }
+      if (lhs == null) {
+        return 1;
+      }
+      if (rhs == null) {
+        return -1;
+      }
+      return lhs.getRank().compareTo(rhs.getRank());
     }
   }
 }

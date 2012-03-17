@@ -14,5 +14,6 @@
     <string name="pick_color">pick</string>
     <string name="cancel">cancel</string>
     <string name="save">save</string>
+    <string name="statistic_end">statistic/end</string>
 
 </resources>

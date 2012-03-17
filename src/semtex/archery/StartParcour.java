@@ -2,7 +2,10 @@
 package semtex.archery;
 
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.UUID;
 
 import semtex.archery.entities.data.DatabaseHelper;
 import semtex.archery.entities.data.entities.*;
@@ -31,7 +34,7 @@ public class StartParcour extends OrmLiteBaseActivity<DatabaseHelper> {
 
   public static final String TAG = String.class.getName();
 
-  private final Set<User> selectedUsers = new HashSet<User>();
+  private final List<User> selectedUsers = new LinkedList<User>();
 
 
   @Override
@@ -109,7 +112,7 @@ public class StartParcour extends OrmLiteBaseActivity<DatabaseHelper> {
     final Visit visit = getHelper().getVisitDao().findLastOpenVisit();
     if (visit != null) {
       final AlertDialog.Builder ad = new AlertDialog.Builder(this);
-      ad.setMessage("Unfinished visit from " + new SimpleDateFormat().format(visit.getBeginTime()) + " found...");
+      ad.setMessage("Found unfinished visit from " + new SimpleDateFormat().format(visit.getBeginTime()));
       ad.setPositiveButton("Resume", new DialogInterface.OnClickListener() {
 
         public void onClick(final DialogInterface dialog, final int which) {
@@ -118,13 +121,20 @@ public class StartParcour extends OrmLiteBaseActivity<DatabaseHelper> {
           finish();
         }
       });
-      ad.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+      ad.setNeutralButton("Cancel", new DialogInterface.OnClickListener() {
+
+        public void onClick(final DialogInterface dialog, final int which) {
+          finish();
+        }
+      });
+      ad.setNegativeButton("Close", new DialogInterface.OnClickListener() {
 
         public void onClick(final DialogInterface dialog, final int which) {
           visit.setEndTime(new Date());
           getHelper().getVisitDao().update(visit);
         }
       });
+      ad.setCancelable(false);
       ad.show();
     }
 
@@ -156,9 +166,11 @@ public class StartParcour extends OrmLiteBaseActivity<DatabaseHelper> {
     getHelper().getVisitDao().create(visit);
 
     // now let's add our fellow friends
+    int rank = 0;
     for (final User user : selectedUsers) {
-      final UserVisit uv = new UserVisit(user, visit);
+      final UserVisit uv = new UserVisit(user, visit, rank);
       getHelper().getUserVisitDao().create(uv);
+      rank++;
     }
 
     final Intent i = new Intent(getApplicationContext(), Scoring.class);
