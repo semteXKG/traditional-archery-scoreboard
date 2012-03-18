@@ -23,6 +23,7 @@ import com.commonsware.cwac.tlv.TouchListView;
 import com.commonsware.cwac.tlv.TouchListView.DropListener;
 import com.j256.ormlite.android.apptools.OrmLiteBaseActivity;
 import com.j256.ormlite.dao.ForeignCollection;
+import com.j256.ormlite.dao.RuntimeExceptionDao;
 
 
 public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
@@ -39,15 +40,52 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
 
   private final Map<UserVisit, TargetHit> userTargetHits = new HashMap<UserVisit, TargetHit>();
 
+  private ArrayAdapter<UserVisit> adapter;
+
   private final int scoringMatrix[][] = new int[5][];
 
   private final String arrowBtnDesc[] = new String[5];
+
+  private RuntimeExceptionDao<UserVisit, Long> userVisitDao;
+
+  private boolean editMode = false;
+
+  private final DropListener dropListener = new DropListener() {
+
+    public void drop(final int from, final int to) {
+      if (from == to) {
+        Log.d(TAG, "no move registered!");
+        return;
+      }
+      Log.i(TAG, "moving from " + from + " to " + to);
+      final UserVisit targetVisit = adapter.getItem(from);
+      if (from < to) {
+        targetVisit.setRank(to);
+        for (int i = from + 1; i <= to; i++) {
+          final UserVisit moveItem = adapter.getItem(i);
+          moveItem.setRank(moveItem.getRank() - 1);
+          userVisitDao.update(moveItem);
+        }
+      } else if (from > to) {
+        targetVisit.setRank(to);
+        for (int i = to; i < from; i++) {
+          final UserVisit moveItem = adapter.getItem(i);
+          moveItem.setRank(moveItem.getRank() + 1);
+          userVisitDao.update(moveItem);
+        }
+      }
+      userVisitDao.update(targetVisit);
+      updateUIElements();
+    }
+  };
 
 
   @Override
   protected void onCreate(final Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.scoring);
+
+    userVisitDao = getHelper().getUserVisitDao();
 
     initScoringMatrix();
 
@@ -68,10 +106,18 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
     });
 
     final TouchListView listView = (TouchListView)findViewById(R.id.tlvUserScoring);
-    listView.setDropListener(new DropListener() {
 
-      public void drop(final int from, final int to) {
-        Log.i(TAG, "from " + from + " to " + to);
+    final Button btnReorder = (Button)findViewById(R.id.btnReorder);
+    btnReorder.setOnClickListener(new View.OnClickListener() {
+
+      public void onClick(final View v) {
+        editMode = !editMode;
+        if (editMode) {
+          listView.setDropListener(dropListener);
+        } else {
+          listView.setDropListener(null);
+        }
+        adapter.notifyDataSetChanged();
       }
     });
 
@@ -114,8 +160,7 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
     txtTargetNumber.setText("Target " + currentTarget.getTargetNumber());
 
     final TouchListView listView = (TouchListView)findViewById(R.id.tlvUserScoring);
-    final ArrayAdapter<UserVisit> adapter =
-        new UserVisitAdapter(this, R.layout.scoring_user_row, new LinkedList(userTargetHits.keySet()));
+    adapter = new UserVisitAdapter(this, R.layout.scoring_user_row, new LinkedList(userTargetHits.keySet()));
     adapter.sort(new RankComparator());
     listView.setAdapter(adapter);
   }
@@ -235,9 +280,9 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
 
 
         private int incrementUsedArrows(final TargetHit th) {
-
           final int usedArrows = th.getNrOfArrows() % MAX_ARROWS + 1;
           th.setNrOfArrows(usedArrows);
+          Log.d(TAG, "Changed used arrows to " + usedArrows + " for " + th.getUser());
           return usedArrows;
         }
 
@@ -284,19 +329,31 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
     private void updateHitButtons(final View v, final Map<ToggleButton, Integer> buttonContainer, final TargetHit th,
         final int points) {
       final Button btnArrow = (Button)v.findViewById(R.id.btnNoOfArrows);
-      btnArrow.setText("-" + arrowBtnDesc[th.getNrOfArrows()] + "-");
+      final String arrowButtonDescription = arrowBtnDesc[th.getNrOfArrows()];
+
+      Log.d(TAG, "Updating arrow button to: " + arrowButtonDescription);
+      btnArrow.setText("-" + arrowButtonDescription + "-");
+      btnArrow.setVisibility(editMode ? View.INVISIBLE : View.VISIBLE);
       final TextView txtPoints = (TextView)v.findViewById(R.id.txtPoints);
       txtPoints.setText(points + " pts");
 
       for (final ToggleButton btn : buttonContainer.keySet()) {
-        final String buttonText = "-" + scoringMatrix[th.getNrOfArrows()][buttonContainer.get(btn)] + "-";
+        final int buttonValue = scoringMatrix[th.getNrOfArrows()][buttonContainer.get(btn)];
+        Log.d(TAG, "ButtonValue: " + buttonValue);
+        final String buttonText = "-" + buttonValue + "-";
         btn.setText(buttonText);
         btn.setTextOn(buttonText);
         btn.setTextOff(buttonText);
+        btn.setVisibility(editMode ? View.INVISIBLE : View.VISIBLE);
+      }
+
+      if (editMode) {
+        return;
       }
 
       int i = 0;
       if (th.getPoints() != null) {
+        Log.d(TAG, "Points set - searching for button");
         // determine the right button - search in the index columns
         while (i < scoringMatrix[th.getNrOfArrows()].length) {
           if (scoringMatrix[th.getNrOfArrows()][i] == th.getPoints()) {
@@ -308,6 +365,7 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
         }
       }
       if (th.getPoints() == null || i == scoringMatrix[th.getNrOfArrows()].length) {
+        Log.d(TAG, "Points not set (" + th.getPoints() + ") or button not found");
         changeButtonStyles(false, null, buttonContainer.keySet());
         btnArrow.setEnabled(true);
       }

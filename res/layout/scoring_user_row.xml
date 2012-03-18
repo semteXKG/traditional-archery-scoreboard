@@ -2,7 +2,6 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/scoringRowLayout"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
     android:orientation="vertical" android:paddingBottom="20dip" android:paddingTop="20dip" android:paddingLeft="10dip" android:paddingRight="10dip">
 
     <RelativeLayout
