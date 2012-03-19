@@ -66,7 +66,7 @@ containing a value of this type.
     }
     public static final class id {
         public static final int LinearLayout1=0x7f05001b;
-        public static final int btnAdd=0x7f05002b;
+        public static final int btnAdd=0x7f05002c;
         public static final int btnAddParcour=0x7f05001e;
         public static final int btnCancelUser=0x7f050027;
         public static final int btnHigh=0x7f050017;
@@ -80,9 +80,10 @@ containing a value of this type.
         public static final int btnReorder=0x7f050012;
         public static final int btnSave=0x7f050009;
         public static final int btnSaveUser=0x7f050028;
+        public static final int btnScoring=0x7f050013;
         public static final int btnStart=0x7f050006;
         public static final int btnUsermanager=0x7f050005;
-        public static final int button1=0x7f050013;
+        public static final int button1=0x7f05002b;
         public static final int ckbUserSelected=0x7f050029;
         public static final int dummyview_col=0x7f050026;
         public static final int fling=0x7f050001;

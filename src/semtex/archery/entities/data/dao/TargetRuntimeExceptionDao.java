@@ -2,6 +2,7 @@
 package semtex.archery.entities.data.dao;
 
 import java.sql.SQLException;
+import java.util.List;
 
 import semtex.archery.entities.data.entities.Target;
 import semtex.archery.entities.data.entities.Version;
@@ -23,6 +24,15 @@ public class TargetRuntimeExceptionDao extends RuntimeExceptionDao<Target, Long>
   public Target findLastTarget(final Version v) {
     try {
       return dao.findLastTarget(v);
+    } catch(final SQLException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+
+  public List<Target> findTargetsByVersion(final Version version) {
+    try {
+      return dao.findTargetsByVersion(version);
     } catch(final SQLException e) {
       throw new RuntimeException(e);
     }

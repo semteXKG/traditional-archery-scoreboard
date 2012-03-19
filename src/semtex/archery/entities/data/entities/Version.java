@@ -69,4 +69,14 @@ public class Version implements Serializable {
     this.name = name;
   }
 
+
+  public Date getCreated() {
+    return created;
+  }
+
+
+  public void setCreated(final Date created) {
+    this.created = created;
+  }
+
 }

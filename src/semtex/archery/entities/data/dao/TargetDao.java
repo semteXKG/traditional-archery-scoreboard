@@ -2,6 +2,7 @@
 package semtex.archery.entities.data.dao;
 
 import java.sql.SQLException;
+import java.util.List;
 
 import semtex.archery.entities.data.entities.Target;
 import semtex.archery.entities.data.entities.Version;
@@ -28,6 +29,14 @@ public class TargetDao extends BaseDaoImpl<Target, Long> implements ITargetDao {
   }
 
 
+  public List<Target> findTargetsByVersion(final Version v) throws SQLException {
+    final QueryBuilder<Target, Long> qb = queryBuilder();
+    qb.where().eq(Target.VERSION, v);
+    qb.orderBy(Target.TARGETNUMBER, true);
+    return qb.query();
+  }
+
+
   public Target findTargetByTargetNumber(final Integer targetNumber, final Version v) throws SQLException {
     final QueryBuilder<Target, Long> qb = queryBuilder();
     final Where<Target, Long> where = qb.where();
@@ -35,5 +44,4 @@ public class TargetDao extends BaseDaoImpl<Target, Long> implements ITargetDao {
     qb.setWhere(where);
     return qb.queryForFirst();
   }
-
 }
