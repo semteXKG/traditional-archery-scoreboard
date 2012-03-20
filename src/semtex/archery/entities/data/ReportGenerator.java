@@ -32,7 +32,7 @@ public class ReportGenerator {
   }
 
 
-  public void generateReportForVisit(final Visit visit) {
+  public ParcourReportData generateReportForVisit(final Visit visit) {
     Log.i(TAG, "Beginning calculation");
     final ParcourReportData reportData = new ParcourReportData();
 
@@ -70,6 +70,7 @@ public class ReportGenerator {
     }
     scoringData.put(0, avgPoints);
     Log.i(TAG, "Ending calculation");
+    return reportData;
   }
 
 

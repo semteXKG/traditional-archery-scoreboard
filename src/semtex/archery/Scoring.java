@@ -4,12 +4,12 @@ package semtex.archery;
 import java.util.*;
 
 import semtex.archery.entities.data.DatabaseHelper;
-import semtex.archery.entities.data.ReportGenerator;
 import semtex.archery.entities.data.entities.Target;
 import semtex.archery.entities.data.entities.TargetHit;
 import semtex.archery.entities.data.entities.UserVisit;
 import semtex.archery.entities.data.entities.Visit;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.GradientDrawable.Orientation;
@@ -126,8 +126,9 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
     btnScoring.setOnClickListener(new View.OnClickListener() {
 
       public void onClick(final View v) {
-        final ReportGenerator generator = new ReportGenerator(getHelper());
-        generator.generateReportForVisit(currentVisit);
+        final Intent i = new Intent(getApplicationContext(), Scoreboard.class);
+        i.putExtra("visit_id", currentVisit.getId());
+        startActivity(i);
       }
     });
 

@@ -22,6 +22,7 @@
         <activity android:name="AddEditUser"></activity>
         <activity android:name="StartParcour"></activity>
         <activity android:name="Scoring"></activity>
+        <activity android:name="Scoreboard"></activity>
     </application>
 
 </manifest>
