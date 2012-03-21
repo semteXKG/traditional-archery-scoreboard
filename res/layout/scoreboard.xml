@@ -21,20 +21,7 @@
     <TableLayout
         android:id="@+id/tblScoring"
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent" >
+        android:layout_height="wrap_content" >
     </TableLayout>
-
-    <ScrollView
-        android:id="@+id/scrollView1"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent" >
-
-        <LinearLayout
-            android:id="@+id/linearLayout1"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent" >
-
-        </LinearLayout>
-    </ScrollView>
 
 </LinearLayout>
