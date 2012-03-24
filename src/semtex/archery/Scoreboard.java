@@ -2,7 +2,8 @@
 package semtex.archery;
 
 import java.text.MessageFormat;
-import java.util.Map;
+import java.util.*;
+import java.util.Map.Entry;
 
 import semtex.archery.entities.data.DatabaseHelper;
 import semtex.archery.entities.data.ReportGenerator;
@@ -11,15 +12,19 @@ import semtex.archery.entities.data.entities.Visit;
 import semtex.archery.entities.data.reports.ParcourReportData;
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.LinearLayout;
-import android.widget.TableLayout;
-import android.widget.TableRow;
-import android.widget.TextView;
+import android.view.View;
+import android.view.ViewGroup.LayoutParams;
+import android.widget.*;
 
 import com.j256.ormlite.android.apptools.OrmLiteBaseActivity;
 
 
 public class Scoreboard extends OrmLiteBaseActivity<DatabaseHelper> {
+
+  public static final int COLOR_1 = 0xFF696969;
+
+  public static final int COLOR_2 = 0xFF808080;
+
 
   @Override
   protected void onCreate(final Bundle savedInstanceState) {
@@ -52,39 +57,71 @@ public class Scoreboard extends OrmLiteBaseActivity<DatabaseHelper> {
 
     TextView tv = new TextView(this);
     tv.setText("");
+    tv.setBackgroundColor(COLOR_1);
 
-    tr.addView(tv, new LinearLayout.LayoutParams(android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
-        android.view.ViewGroup.LayoutParams.WRAP_CONTENT));
+    tr.addView(tv, new TableRow.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, 0.2f));
 
     for (final UserVisit uv : v.getUserVisit()) {
       tv = new TextView(this);
       tv.setText(uv.getUser().getUserName());
-
-      tr.addView(tv, new LinearLayout.LayoutParams(android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
-          android.view.ViewGroup.LayoutParams.WRAP_CONTENT));
+      tv.setBackgroundColor(COLOR_1);
+      tr.addView(tv, new TableRow.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, 0.2f));
     }
 
     tl.addView(tr);
     final Map<Integer, Map<String, Double>> scoringData = reportData.getScoringData();
 
-    for (final Map.Entry<Integer, Map<String, Double>> entry : scoringData.entrySet()) {
-      tr = new TableRow(this);
+    final Set<Entry<Integer, Map<String, Double>>> entrySet = scoringData.entrySet();
+    final TreeSet<Entry<Integer, Map<String, Double>>> sortedSet =
+        new TreeSet<Map.Entry<Integer, Map<String, Double>>>(new Comparator<Entry<Integer, Map<String, Double>>>() {
 
+          public int compare(final Entry<Integer, Map<String, Double>> lhs,
+              final Entry<Integer, Map<String, Double>> rhs) {
+            if (lhs == null) {
+              return -1;
+            }
+            if (rhs == null) {
+              return 1;
+            }
+
+            return lhs.getKey().compareTo(rhs.getKey());
+          }
+        });
+
+    sortedSet.addAll(entrySet);
+
+    for (final Map.Entry<Integer, Map<String, Double>> entry : sortedSet) {
+      tr = new TableRow(this);
+      final int col = entry.getKey() % 2 == 0 ? COLOR_2 : COLOR_1;
       tv = new TextView(this);
       tv.setText(entry.getKey().toString());
-      tr.addView(tv, new LinearLayout.LayoutParams(android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
-          android.view.ViewGroup.LayoutParams.WRAP_CONTENT));
+      tv.setBackgroundColor(col);
+      tr.addView(tv, new TableRow.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, 0.2f));
 
       for (final UserVisit uv : v.getUserVisit()) {
         tv = new TextView(this);
         final Double value = entry.getValue().get(uv.getUser().getUserName());
         tv.setText(value != null ? MessageFormat.format("{0,number,#.##}", value) : "-");
+        tv.setBackgroundColor(col);
+        tr.addView(tv, new TableRow.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, 0.2f));
 
-        tr.addView(tv, new LinearLayout.LayoutParams(android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
-            android.view.ViewGroup.LayoutParams.WRAP_CONTENT));
       }
       tl.addView(tr);
     }
+
+    final Button btnVisitClose = (Button)findViewById(R.id.btnVisitClose);
+    btnVisitClose.setOnClickListener(new View.OnClickListener() {
+
+      public void onClick(final View view) {
+        v.setEndTime(new Date());
+        getHelper().getVisitDao().update(v);
+
+        Toast.makeText(view.getContext(), "Visit successfully ended!", Toast.LENGTH_SHORT).show();
+
+        setResult(RESULT_OK);
+        finish();
+      }
+    });
 
   }
 }

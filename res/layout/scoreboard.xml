@@ -18,10 +18,30 @@
         android:text=""
         android:textAppearance="?android:attr/textAppearanceSmall" />
 
-    <TableLayout
-        android:id="@+id/tblScoring"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content" >
-    </TableLayout>
+    <ScrollView
+        android:id="@+id/scrollView1"
+        android:layout_width="match_parent"
+        android:layout_height="0dip" 
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:id="@+id/linearLayout1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
+
+            <TableLayout
+                android:id="@+id/tblScoring"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content" >
+            </TableLayout>
+
+        </LinearLayout>
+    </ScrollView>
+
+    <Button
+        android:id="@+id/btnVisitClose"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/close" />
 
 </LinearLayout>

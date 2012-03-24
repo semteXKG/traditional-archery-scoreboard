@@ -37,6 +37,8 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
 
   private static final int MAX_ARROWS = 4;
 
+  protected static final int RC_SCOREBOARD = 2;
+
   private final Map<UserVisit, Integer> userPoints = new HashMap<UserVisit, Integer>();
 
   private final Map<UserVisit, TargetHit> userTargetHits = new HashMap<UserVisit, TargetHit>();
@@ -128,7 +130,7 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
       public void onClick(final View v) {
         final Intent i = new Intent(getApplicationContext(), Scoreboard.class);
         i.putExtra("visit_id", currentVisit.getId());
-        startActivity(i);
+        startActivityForResult(i, RC_SCOREBOARD);
       }
     });
 
@@ -245,6 +247,15 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
       }
     }
     Log.i(TAG, "added " + uv.size() + " players");
+  }
+
+
+  @Override
+  protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
+    // if we get the "close down" message from scoreboard => follow its lead!
+    if (requestCode == RC_SCOREBOARD && resultCode == RESULT_OK) {
+      finish();
+    }
   }
 
   public class UserVisitAdapter extends ArrayAdapter<UserVisit> {
