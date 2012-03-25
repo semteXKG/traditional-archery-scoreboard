@@ -17,5 +17,6 @@
     <string name="statistic_end">statistic/end</string>
     <string name="reorder">reorder</string>
     <string name="close">close</string>
+    <string name="start_stop_edit_mode">enter / leave edit mode</string>
 
 </resources>

@@ -41,7 +41,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 
   private RuntimeExceptionDao<Parcour, Long> parcourDao;
 
-  private RuntimeExceptionDao<Version, Long> versionDao;
+  private VersionRuntimeExceptionDao versionDao;
 
 
   /*
@@ -112,11 +112,11 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
   }
 
 
-  public RuntimeExceptionDao<Version, Long> getVersionDao() {
+  public VersionRuntimeExceptionDao getVersionDao() {
     if (versionDao == null) {
       try {
-        final Dao<Version, Long> dao = getDao(Version.class);
-        versionDao = new RuntimeExceptionDao<Version, Long>(dao);
+        final IVersionDao dao = getDao(Version.class);
+        versionDao = new VersionRuntimeExceptionDao(dao);
       } catch(final SQLException e) {
         Log.e(DatabaseHelper.class.getName(), "unable to create dao", e);
       }

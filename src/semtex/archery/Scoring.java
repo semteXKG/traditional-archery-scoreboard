@@ -15,9 +15,7 @@ import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.GradientDrawable.Orientation;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
+import android.view.*;
 import android.widget.*;
 
 import com.commonsware.cwac.tlv.TouchListView;
@@ -38,6 +36,8 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
   private static final int MAX_ARROWS = 4;
 
   protected static final int RC_SCOREBOARD = 2;
+
+  private static final int MENU_START_STOP_ORDERING = 1;
 
   private final Map<UserVisit, Integer> userPoints = new HashMap<UserVisit, Integer>();
 
@@ -84,6 +84,37 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
 
 
   @Override
+  public boolean onCreateOptionsMenu(final Menu menu) {
+    super.onCreateOptionsMenu(menu);
+
+    final int groupId = 0;
+    final int menuItemId = MENU_START_STOP_ORDERING;
+    final int menuItemOrdering = Menu.NONE;
+    final MenuItem mi = menu.add(groupId, menuItemId, menuItemOrdering, R.string.start_stop_edit_mode);
+    return true;
+  };
+
+
+  @Override
+  public boolean onOptionsItemSelected(final MenuItem item) {
+    super.onOptionsItemSelected(item);
+    switch (item.getItemId()) {
+      case MENU_START_STOP_ORDERING:
+        final TouchListView listView = (TouchListView)findViewById(R.id.tlvUserScoring);
+        editMode = !editMode;
+        if (editMode) {
+          listView.setDropListener(dropListener);
+        } else {
+          listView.setDropListener(null);
+        }
+        adapter.notifyDataSetChanged();
+        return true;
+    }
+    return false;
+  }
+
+
+  @Override
   protected void onCreate(final Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.scoring);
@@ -105,22 +136,6 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
 
       public void onClick(final View v) {
         saveResultsAndSwap(false);
-      }
-    });
-
-    final TouchListView listView = (TouchListView)findViewById(R.id.tlvUserScoring);
-
-    final Button btnReorder = (Button)findViewById(R.id.btnReorder);
-    btnReorder.setOnClickListener(new View.OnClickListener() {
-
-      public void onClick(final View v) {
-        editMode = !editMode;
-        if (editMode) {
-          listView.setDropListener(dropListener);
-        } else {
-          listView.setDropListener(null);
-        }
-        adapter.notifyDataSetChanged();
       }
     });
 
@@ -223,7 +238,7 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
   private void fetchSetupData() {
     currentVisit = getHelper().getVisitDao().findLastOpenVisit();
     Log.i(TAG, "Found: " + currentVisit);
-    currentTarget = getHelper().getTargetDao().findLastTarget(currentVisit.getVersion());
+    currentTarget = getHelper().getTargetDao().findTargetByTargetNumber(1, currentVisit.getVersion());
     Log.i(TAG, "current Target set to: " + currentTarget);
 
     fillTargetHitMap();

@@ -4,6 +4,8 @@ package semtex.archery.entities.data.entities;
 import java.io.Serializable;
 import java.util.Date;
 
+import semtex.archery.entities.data.dao.VersionDao;
+
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
@@ -12,19 +14,23 @@ import com.j256.ormlite.table.DatabaseTable;
  * @author semteX
  * 
  */
-@DatabaseTable()
+@DatabaseTable(daoClass = VersionDao.class)
 public class Version implements Serializable {
+
+  public static final String PARCOUR_NAME = "parcour_id";
+
+  public static final String CREATED_NAME = "created_at";
 
   @DatabaseField(generatedId = true)
   private Long id;
 
-  @DatabaseField(canBeNull = false, foreign = true)
+  @DatabaseField(canBeNull = false, foreign = true, columnName = PARCOUR_NAME)
   private Parcour parcour;
 
   @DatabaseField()
   private String name;
 
-  @DatabaseField(columnName = "created_at")
+  @DatabaseField(columnName = CREATED_NAME)
   private Date created;
 
 

@@ -153,16 +153,19 @@ public class StartParcour extends OrmLiteBaseActivity<DatabaseHelper> {
       return;
     }
 
-    // Create new variant
-    final Version vTmp = new Version(UUID.randomUUID().toString(), parcour);
-    getHelper().getVersionDao().create(vTmp);
+    // find latest version
+    Version v = getHelper().getVersionDao().findLatestVersion(parcour);
+    if (v == null) {
+      v = new Version(UUID.randomUUID().toString(), parcour);
+      getHelper().getVersionDao().create(v);
 
-    // Insert the first target
-    final Target target = new Target(1, vTmp);
-    getHelper().getTargetDao().create(target);
+      // Insert the first target
+      final Target target = new Target(1, v);
+      getHelper().getTargetDao().create(target);
+    }
 
     // now let's create a visit
-    final Visit visit = new Visit(new Date(), vTmp);
+    final Visit visit = new Visit(new Date(), v);
     getHelper().getVisitDao().create(visit);
 
     // now let's add our fellow friends

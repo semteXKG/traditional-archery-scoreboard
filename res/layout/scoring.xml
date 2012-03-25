@@ -43,24 +43,12 @@
         android:layout_height="0dip"
         android:layout_weight="1.0" 
         tlv:grabber="@+id/scoringRowLayout"/>
-
-    <LinearLayout
-        android:id="@+id/linearLayout1"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
-
-        <Button
-            android:id="@+id/btnReorder"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/reorder" />
-
-        <Button
-            android:id="@+id/btnScoring"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/statistic_end" />
-
-    </LinearLayout>
+
+    <Button
+        android:id="@+id/btnScoring"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="@string/statistic_end" />
 
 </LinearLayout>
