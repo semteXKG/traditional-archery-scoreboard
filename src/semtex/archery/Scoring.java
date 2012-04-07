@@ -154,6 +154,13 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
   }
 
 
+  @Override
+  protected void onPause() {
+    saveResultsAndSwap(true);
+    super.onPause();
+  }
+
+
   private void initScoringMatrix() {
     scoringMatrix[1] = new int[3];
     scoringMatrix[1][0] = 20;
@@ -238,7 +245,9 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
   private void fetchSetupData() {
     currentVisit = getHelper().getVisitDao().findLastOpenVisit();
     Log.i(TAG, "Found: " + currentVisit);
-    currentTarget = getHelper().getTargetDao().findTargetByTargetNumber(1, currentVisit.getVersion());
+    currentTarget =
+        getHelper().getTargetDao().findTargetByTargetNumber(
+            getHelper().getTargetHitDao().getLatestTargetNumber(currentVisit), currentVisit.getVersion());
     Log.i(TAG, "current Target set to: " + currentTarget);
 
     fillTargetHitMap();

@@ -57,7 +57,8 @@ public class ReportGenerator {
                 + "LEFT JOIN target ON target.version= version.id "
                 + "LEFT JOIN target_hit ON target_hit.target = target.id "
                 + "LEFT JOIN user_visit uv ON target_hit.user = uv.id " + "LEFT JOIN user u ON uv.user_id = u.id "
-                + "WHERE visit.id=" + visit.getId() + " ORDER BY target.target_number");
+                + "WHERE visit.id=" + visit.getId() + " AND uv.visit_id=" + visit.getId()
+                + " ORDER BY target.target_number");
     // new DataType[] { DataType.STRING, DataType.INTEGER_OBJ, DataType.INTEGER_OBJ
     final Map<Integer, Map<String, Double>> scoringData = reportData.getScoringData();
 

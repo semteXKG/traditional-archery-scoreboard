@@ -2,6 +2,7 @@
 package semtex.archery.entities.data.dao;
 
 import java.sql.SQLException;
+import java.util.List;
 
 import semtex.archery.entities.data.entities.Visit;
 
@@ -27,4 +28,12 @@ public class VisitRuntimeExceptionDao extends RuntimeExceptionDao<Visit, Long> {
     }
   }
 
+
+  public List<Visit> findAllVisits(final boolean ascending, final long limit) {
+    try {
+      return dao.findAllVisits(ascending, limit);
+    } catch(final SQLException e) {
+      throw new RuntimeException(e);
+    }
+  }
 }

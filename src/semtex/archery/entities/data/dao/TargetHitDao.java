@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import semtex.archery.entities.data.entities.Target;
 import semtex.archery.entities.data.entities.TargetHit;
 import semtex.archery.entities.data.entities.UserVisit;
+import semtex.archery.entities.data.entities.Visit;
 
 import com.j256.ormlite.dao.BaseDaoImpl;
 import com.j256.ormlite.dao.GenericRawResults;
@@ -19,6 +20,25 @@ public class TargetHitDao extends BaseDaoImpl<TargetHit, Long> implements ITarge
 
   public TargetHitDao(final ConnectionSource connectionSource) throws SQLException {
     super(connectionSource, TargetHit.class);
+  }
+
+
+  public Integer getLatestTargetNumber(final Visit v) throws SQLException {
+    final GenericRawResults<String[]> results =
+        queryRaw("SELECT MAX(target.target_number) FROM visit " + "LEFT JOIN user_visit uv ON uv.visit_id = visit.id "
+            + "LEFT JOIN target_hit th ON th.user = uv.id " + "LEFT JOIN target ON target.id = th.target "
+            + "WHERE visit.id = " + v.getId());
+
+    try {
+      for (final String[] result : results) {
+        if (result[0] != null) {
+          return Integer.parseInt(result[0]);
+        }
+      }
+    } finally {
+      results.close();
+    }
+    return 1;
   }
 
 

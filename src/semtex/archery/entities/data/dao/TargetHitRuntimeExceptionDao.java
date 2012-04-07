@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import semtex.archery.entities.data.entities.Target;
 import semtex.archery.entities.data.entities.TargetHit;
 import semtex.archery.entities.data.entities.UserVisit;
+import semtex.archery.entities.data.entities.Visit;
 
 import com.j256.ormlite.dao.RuntimeExceptionDao;
 
@@ -33,6 +34,15 @@ public class TargetHitRuntimeExceptionDao extends RuntimeExceptionDao<TargetHit,
   public Integer calculatePointsByUser(final UserVisit userVisit) {
     try {
       return dao.calculatePointsByUser(userVisit);
+    } catch(final SQLException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+
+  public Integer getLatestTargetNumber(final Visit v) {
+    try {
+      return dao.getLatestTargetNumber(v);
     } catch(final SQLException e) {
       throw new RuntimeException(e);
     }

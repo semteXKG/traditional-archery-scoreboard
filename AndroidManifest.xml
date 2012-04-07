@@ -23,6 +23,7 @@
         <activity android:name="StartParcour"></activity>
         <activity android:name="Scoring"></activity>
         <activity android:name="Scoreboard"></activity>
+        <activity android:name="History"></activity>
     </application>
 
 </manifest>

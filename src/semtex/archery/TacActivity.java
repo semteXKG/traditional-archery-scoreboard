@@ -41,11 +41,12 @@ public class TacActivity extends OrmLiteBaseActivity<DatabaseHelper> {
       }
     });
 
-    final Button userManager = (Button)findViewById(R.id.btnHistory);
-    userManager.setOnClickListener(new View.OnClickListener() {
+    final Button btnHistory = (Button)findViewById(R.id.btnHistory);
+    btnHistory.setOnClickListener(new View.OnClickListener() {
 
       public void onClick(final View v) {
-
+        final Intent intent = new Intent(v.getContext(), History.class);
+        startActivity(intent);
       }
     });
 

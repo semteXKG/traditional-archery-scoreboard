@@ -2,6 +2,7 @@
 package semtex.archery.entities.data.dao;
 
 import java.sql.SQLException;
+import java.util.List;
 
 import semtex.archery.entities.data.entities.Visit;
 
@@ -14,6 +15,16 @@ public class VisitDao extends BaseDaoImpl<Visit, Long> implements IVisitDao {
 
   public VisitDao(final ConnectionSource connectionSource, final Class dataClass) throws SQLException {
     super(connectionSource, dataClass);
+  }
+
+
+  public List<Visit> findAllVisits(final boolean ascending, final long limit) throws SQLException {
+    final QueryBuilder<Visit, Long> qb = queryBuilder();
+    if (limit != 0) {
+      qb.limit(limit);
+    }
+    qb.orderBy(Visit.END_TIME, ascending);
+    return qb.query();
   }
 
 
