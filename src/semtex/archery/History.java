@@ -45,6 +45,8 @@ public class History extends OrmLiteBaseActivity<DatabaseHelper> {
 
   public class VisitHistoryAdapter extends ArrayAdapter<Visit> {
 
+    private static final String USER_TEXTVIEW = "scoring line";
+
     public final String TAG = VisitHistoryAdapter.class.getName();
 
     private final ReportGenerator generator = new ReportGenerator(History.this.getHelper());
@@ -88,26 +90,32 @@ public class History extends OrmLiteBaseActivity<DatabaseHelper> {
       final TextView txtRevisionNumber = (TextView)v.findViewById(R.id.lblRevision);
       txtRevisionNumber.setText(revision);
 
-      final LinearLayout ll = (LinearLayout)v.findViewById(R.id.historyVisitLinearLayout);
+      final LinearLayout ll = (LinearLayout)v.findViewById(R.id.llUserScores);
+      ll.removeAllViews();
 
       final Map<Integer, Map<String, Double>> data = reportData.getScoringData();
+
       final Map<String, Double> avgPointsMap = data.get(0);
-      if (ll.getChildCount() < 4) {
-        for (final Map.Entry<String, Double> entries : avgPointsMap.entrySet()) {
+      final Map<String, Double> totalPointsMap = data.get(-1);
 
-          final LinearLayout.LayoutParams lp =
-              new LinearLayout.LayoutParams(android.view.ViewGroup.LayoutParams.FILL_PARENT,
-                  android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
-          lp.setMargins(30, 0, 0, 0);
+      for (final Map.Entry<String, Double> entries : avgPointsMap.entrySet()) {
+        final LinearLayout.LayoutParams lp =
+            new LinearLayout.LayoutParams(android.view.ViewGroup.LayoutParams.FILL_PARENT,
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
+        lp.setMargins(30, 0, 0, 0);
 
-          final TextView tv = new TextView(v.getContext());
-          tv.setTag(visit.getId() + " " + entries.getKey());
-          tv.setText(entries.getKey() + " - "
-              + (entries.getValue() != null ? MessageFormat.format("{0,number,#.##}", entries.getValue()) : "-"));
+        final Double totalPoints = totalPointsMap.get(entries.getKey());
 
-          ll.addView(tv, lp);
-        }
+        final TextView tv = new TextView(v.getContext());
+        tv.setId(View.NO_ID);
+        tv.setTag(USER_TEXTVIEW);
+        tv.setText(entries.getKey() + " - "
+            + (totalPoints != null ? MessageFormat.format("{0,number,#}", totalPoints) : "-") + " - avg "
+            + (entries.getValue() != null ? MessageFormat.format("{0,number,#.##}", entries.getValue()) : "-"));
+
+        ll.addView(tv, lp);
       }
+
       return v;
     }
   }

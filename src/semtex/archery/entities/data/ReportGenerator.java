@@ -41,7 +41,7 @@ public class ReportGenerator {
     final ParcourReportData reportData = new ParcourReportData();
 
     final Map<String, Integer> totalNumbers = new HashMap<String, Integer>();
-    final Map<String, Integer> totalPoints = new HashMap<String, Integer>();
+    final Map<String, Double> totalPoints = new HashMap<String, Double>();
     daoHelper.getVersionDao().refresh(visit.getVersion());
     final Version version = visit.getVersion();
     daoHelper.getParcourDao().refresh(version.getParcour());
@@ -74,7 +74,7 @@ public class ReportGenerator {
         }
         targetHitMap.put(userName, points);
         totalNumbers.put(userName, safeGet(totalNumbers, userName) + 1);
-        totalPoints.put(userName, (int)(safeGet(totalPoints, userName) + points));
+        totalPoints.put(userName, safeGetDouble(totalPoints, userName) + points);
       }
     }
 
@@ -85,6 +85,7 @@ public class ReportGenerator {
       avgPoints.put(totalNumberEntry.getKey(), avgCalcPoints);
     }
     scoringData.put(0, avgPoints);
+    scoringData.put(-1, totalPoints);
     Log.i(TAG, "Ending calculation");
     return reportData;
   }
@@ -92,6 +93,15 @@ public class ReportGenerator {
 
   private int safeGet(final Map<String, Integer> map, final String key) {
     final Integer val = map.get(key);
+    if (val == null) {
+      return 0;
+    }
+    return val;
+  }
+
+
+  private double safeGetDouble(final Map<String, Double> map, final String key) {
+    final Double val = map.get(key);
     if (val == null) {
       return 0;
     }

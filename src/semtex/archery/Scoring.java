@@ -156,7 +156,7 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
 
   @Override
   protected void onPause() {
-    saveResultsAndSwap(true);
+    saveResults();
     super.onPause();
   }
 
@@ -201,7 +201,7 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
   }
 
 
-  protected void saveResultsAndSwap(final boolean forward) {
+  protected void saveResults() {
     // Saving results to parcour page
     for (final TargetHit th : userTargetHits.values()) {
       if (th.getId() == null) {
@@ -212,6 +212,11 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
         getHelper().getTargetHitDao().update(th);
       }
     }
+  }
+
+
+  protected void saveResultsAndSwap(final boolean forward) {
+    saveResults();
 
     // fetching the next target..
     final int nextTargetNumber = currentTarget.getTargetNumber() + (forward ? 1 : -1);
