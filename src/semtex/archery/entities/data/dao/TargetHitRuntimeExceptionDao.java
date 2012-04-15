@@ -40,6 +40,15 @@ public class TargetHitRuntimeExceptionDao extends RuntimeExceptionDao<TargetHit,
   }
 
 
+  public Integer deleteTargetHitsFromUserVisit(final UserVisit uv) {
+    try {
+      return dao.deleteTargetHitsFromUserVisit(uv);
+    } catch(final SQLException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+
   public Integer getLatestTargetNumber(final Visit v) {
     try {
       return dao.getLatestTargetNumber(v);

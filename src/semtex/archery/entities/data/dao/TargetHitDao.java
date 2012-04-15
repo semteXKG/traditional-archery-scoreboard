@@ -11,6 +11,7 @@ import semtex.archery.entities.data.entities.Visit;
 import com.j256.ormlite.dao.BaseDaoImpl;
 import com.j256.ormlite.dao.GenericRawResults;
 import com.j256.ormlite.field.DataType;
+import com.j256.ormlite.stmt.DeleteBuilder;
 import com.j256.ormlite.stmt.QueryBuilder;
 import com.j256.ormlite.stmt.Where;
 import com.j256.ormlite.support.ConnectionSource;
@@ -39,6 +40,13 @@ public class TargetHitDao extends BaseDaoImpl<TargetHit, Long> implements ITarge
       results.close();
     }
     return 1;
+  }
+
+
+  public Integer deleteTargetHitsFromUserVisit(final UserVisit uv) throws SQLException {
+    final DeleteBuilder<TargetHit, Long> deleteBuilder = deleteBuilder();
+    deleteBuilder.where().eq(TargetHit.USER_VISIT, uv.getId());
+    return delete(deleteBuilder.prepare());
   }
 
 

@@ -21,4 +21,7 @@ public interface ITargetHitDao extends Dao<TargetHit, Long> {
 
   public Integer getLatestTargetNumber(final Visit v) throws SQLException;
 
+
+  public Integer deleteTargetHitsFromUserVisit(final UserVisit uv) throws SQLException;
+
 }

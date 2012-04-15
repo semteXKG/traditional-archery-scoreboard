@@ -110,6 +110,12 @@ public class Scoreboard extends OrmLiteBaseActivity<DatabaseHelper> {
     }
 
     final Button btnVisitClose = (Button)findViewById(R.id.btnVisitClose);
+
+    // don't show button if visit is closed
+    if (v.getEndTime() != null) {
+      btnVisitClose.setVisibility(View.GONE);
+    }
+
     btnVisitClose.setOnClickListener(new View.OnClickListener() {
 
       public void onClick(final View view) {

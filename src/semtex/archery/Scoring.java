@@ -117,6 +117,7 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
   @Override
   protected void onCreate(final Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
     setContentView(R.layout.scoring);
 
     userVisitDao = getHelper().getUserVisitDao();
@@ -283,7 +284,9 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
   protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
     // if we get the "close down" message from scoreboard => follow its lead!
     if (requestCode == RC_SCOREBOARD && resultCode == RESULT_OK) {
+      getWindow().clearFlags(WindowManager.LayoutParams.FLAG_ALLOW_LOCK_WHILE_SCREEN_ON);
       finish();
+
     }
   }
 

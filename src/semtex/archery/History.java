@@ -10,24 +10,58 @@ import java.util.Map;
 
 import semtex.archery.entities.data.DatabaseHelper;
 import semtex.archery.entities.data.ReportGenerator;
+import semtex.archery.entities.data.entities.UserVisit;
 import semtex.archery.entities.data.entities.Visit;
 import semtex.archery.entities.data.reports.ParcourReportData;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.LinearLayout;
-import android.widget.ListView;
-import android.widget.TextView;
+import android.view.*;
+import android.view.ContextMenu.ContextMenuInfo;
+import android.widget.*;
+import android.widget.AdapterView.OnItemClickListener;
 
 import com.j256.ormlite.android.apptools.OrmLiteBaseActivity;
 
 
 public class History extends OrmLiteBaseActivity<DatabaseHelper> {
 
+  private static final int CTX_REMOVE_ITEM_ID = 1;
+
+  private static final String TAG = History.class.getName();
+
   public Map<Visit, ParcourReportData> reportCache = new HashMap<Visit, ParcourReportData>();
+
+  private ListView lv;
+
+  private ArrayAdapter<Visit> adapter;
+
+
+  @Override
+  public void onCreateContextMenu(final ContextMenu menu, final View v, final ContextMenuInfo menuInfo) {
+    super.onCreateContextMenu(menu, v, menuInfo);
+    if (v.getId() == R.id.lvVisitHistory) {
+      menu.add(Menu.NONE, CTX_REMOVE_ITEM_ID, Menu.NONE, "Remove");
+    }
+  }
+
+
+  @Override
+  public boolean onContextItemSelected(final MenuItem item) {
+    final AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
+    if (item.getItemId() == CTX_REMOVE_ITEM_ID) {
+      final Visit visit = adapter.getItem(info.position);
+      Toast.makeText(getApplicationContext(), "Disposing " + visit.getId(), Toast.LENGTH_SHORT).show();
+
+      for (final UserVisit uv : visit.getUserVisit()) {
+        int disposed = getHelper().getTargetHitDao().deleteTargetHitsFromUserVisit(uv);
+        disposed = getHelper().getUserVisitDao().delete(uv);
+      }
+      getHelper().getVisitDao().delete(visit);
+      refreshVisitList();
+    }
+    return true;
+  }
 
 
   @Override
@@ -35,12 +69,30 @@ public class History extends OrmLiteBaseActivity<DatabaseHelper> {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.history_visit);
 
-    final ListView lv = (ListView)findViewById(R.id.lvVisitHistory);
+    lv = (ListView)findViewById(R.id.lvVisitHistory);
+    lv.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+    lv.setItemsCanFocus(true);
+    lv.setOnItemClickListener(new OnItemClickListener() {
+
+      public void onItemClick(final AdapterView<?> parentView, final View childView, final int position, final long id) {
+        final Visit v = (Visit)lv.getItemAtPosition(position);
+
+        final Intent i = new Intent(getApplicationContext(), Scoreboard.class);
+        i.putExtra("visit_id", v.getId());
+
+        startActivity(i);
+      }
+    });
+
+    registerForContextMenu(lv);
+    refreshVisitList();
+  }
+
+
+  private void refreshVisitList() {
     final List<Visit> visits = getHelper().getVisitDao().findAllVisits(false, 0L);
-
-    final ArrayAdapter<Visit> adapter = new VisitHistoryAdapter(this, R.layout.history_visit_row, visits);
+    adapter = new VisitHistoryAdapter(this, R.layout.history_visit_row, visits);
     lv.setAdapter(adapter);
-
   }
 
   public class VisitHistoryAdapter extends ArrayAdapter<Visit> {
