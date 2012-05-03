@@ -85,9 +85,7 @@ public class StartParcour extends OrmLiteBaseActivity<DatabaseHelper> {
           selectedUsers.add(user);
           checkBox.setChecked(true);
         }
-
       }
-
     });
 
     lv.setItemsCanFocus(false);
@@ -231,6 +229,9 @@ public class StartParcour extends OrmLiteBaseActivity<DatabaseHelper> {
 
       final TextView mail = (TextView)v.findViewById(R.id.txtMail);
       mail.setText(currentUser.getMail());
+
+      final CheckBox cb = (CheckBox)v.findViewById(R.id.ckbUserSelected);
+      cb.setChecked(selectedUsers.contains(currentUser));
 
       final GradientDrawable gd =
           new GradientDrawable(Orientation.RIGHT_LEFT, new int[] { currentUser.getRgbColor() & 0x00FFFFFF | 0xAA000000,

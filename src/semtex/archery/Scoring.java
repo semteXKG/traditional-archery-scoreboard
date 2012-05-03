@@ -1,6 +1,9 @@
 
 package semtex.archery;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.*;
 
 import semtex.archery.entities.data.DatabaseHelper;
@@ -10,10 +13,18 @@ import semtex.archery.entities.data.entities.UserVisit;
 import semtex.archery.entities.data.entities.Visit;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.AssetFileDescriptor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.GradientDrawable.Orientation;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
+import android.support.v4.view.PagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.*;
 import android.widget.*;
@@ -23,11 +34,14 @@ import com.commonsware.cwac.tlv.TouchListView.DropListener;
 import com.j256.ormlite.android.apptools.OrmLiteBaseActivity;
 import com.j256.ormlite.dao.ForeignCollection;
 import com.j256.ormlite.dao.RuntimeExceptionDao;
+import com.polites.android.GestureImageView;
 
 
 public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
 
   public static final String TAG = Scoring.class.getName();
+
+  public static final String APP_FOLDER = "/TAS/";
 
   private Visit currentVisit;
 
@@ -37,11 +51,15 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
 
   protected static final int RC_SCOREBOARD = 2;
 
+  private static final int RC_TAKE_PICTORE = 3;
+
   private static final int MENU_START_STOP_ORDERING = 1;
 
   private final Map<UserVisit, Integer> userPoints = new HashMap<UserVisit, Integer>();
 
   private final Map<UserVisit, TargetHit> userTargetHits = new HashMap<UserVisit, TargetHit>();
+
+  private ViewPagerAdapter viewPageAdapter;
 
   private ArrayAdapter<UserVisit> adapter;
 
@@ -118,7 +136,7 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
   protected void onCreate(final Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
-    setContentView(R.layout.scoring);
+    setContentView(R.layout.scoring_main);
 
     userVisitDao = getHelper().getUserVisitDao();
 
@@ -140,15 +158,9 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
       }
     });
 
-    final Button btnScoring = (Button)findViewById(R.id.btnScoring);
-    btnScoring.setOnClickListener(new View.OnClickListener() {
-
-      public void onClick(final View v) {
-        final Intent i = new Intent(getApplicationContext(), Scoreboard.class);
-        i.putExtra("visit_id", currentVisit.getId());
-        startActivityForResult(i, RC_SCOREBOARD);
-      }
-    });
+    viewPageAdapter = new ViewPagerAdapter();
+    final ViewPager viewPager = (ViewPager)findViewById(R.id.viewpager);
+    viewPager.setAdapter(viewPageAdapter);
 
     fetchSetupData();
     updateUIElements();
@@ -195,10 +207,8 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
     final TextView txtTargetNumber = (TextView)findViewById(R.id.txtTargetNumber);
     txtTargetNumber.setText("Target " + currentTarget.getTargetNumber());
 
-    final TouchListView listView = (TouchListView)findViewById(R.id.tlvUserScoring);
-    adapter = new UserVisitAdapter(this, R.layout.scoring_user_row, new LinkedList(userTargetHits.keySet()));
-    adapter.sort(new RankComparator());
-    listView.setAdapter(adapter);
+    viewPageAdapter.updateUI();
+
   }
 
 
@@ -287,6 +297,140 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
       getWindow().clearFlags(WindowManager.LayoutParams.FLAG_ALLOW_LOCK_WHILE_SCREEN_ON);
       finish();
 
+    } else if (requestCode == RC_TAKE_PICTORE && resultCode == RESULT_OK) {
+      updateUIElements();
+    }
+  }
+
+  public class ViewPagerAdapter extends PagerAdapter {
+
+    private View scoringView = null;
+
+    private View photoView = null;
+
+
+    private File buildBasePath() {
+      if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+        return null;
+      }
+      return new File(Environment.getExternalStorageDirectory(), APP_FOLDER);
+    }
+
+
+    public void updateUI() {
+      if (scoringView != null) {
+        final TouchListView listView = (TouchListView)scoringView.findViewById(R.id.tlvUserScoring);
+        adapter =
+            new UserVisitAdapter(Scoring.this.getApplicationContext(), R.layout.scoring_user_row, new LinkedList(
+                userTargetHits.keySet()));
+        adapter.sort(new RankComparator());
+        listView.setAdapter(adapter);
+      }
+      if (photoView != null) {
+        final GestureImageView giv = (GestureImageView)photoView.findViewById(R.id.targetGestureImage);
+        if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+          final File targetDir = buildBasePath();
+          if (targetDir == null) {
+            giv.setImageResource(R.drawable.not_available);
+          } else {
+            final File targetFile = new File(targetDir, currentTarget.getId() + ".jpg");
+            if (targetFile.exists()) {
+              final Uri targetUri = Uri.fromFile(targetFile);
+              giv.setImageBitmap(readBitmap(targetUri));
+            } else {
+              giv.setImageResource(R.drawable.not_available);
+            }
+          }
+        }
+      }
+    }
+
+
+    public Bitmap readBitmap(final Uri selectedImage) {
+      Bitmap bm = null;
+      final BitmapFactory.Options options = new BitmapFactory.Options();
+      options.inSampleSize = 2; // reduce quality
+      AssetFileDescriptor fileDescriptor = null;
+      try {
+        fileDescriptor = Scoring.this.getContentResolver().openAssetFileDescriptor(selectedImage, "r");
+      } catch(final FileNotFoundException e) {
+        e.printStackTrace();
+      } finally {
+        try {
+          bm = BitmapFactory.decodeFileDescriptor(fileDescriptor.getFileDescriptor(), null, options);
+          fileDescriptor.close();
+        } catch(final IOException e) {
+          e.printStackTrace();
+        }
+      }
+      return bm;
+
+    }
+
+
+    @Override
+    public int getCount() {
+      return 2;
+    }
+
+
+    @Override
+    public boolean isViewFromObject(final View view, final Object object) {
+      return view.equals(object);
+    }
+
+
+    @Override
+    public Object instantiateItem(final View pager, final int position) {
+      switch (position) {
+        case 0:
+          if (scoringView == null) {
+            final LayoutInflater li = (LayoutInflater)getSystemService(LAYOUT_INFLATER_SERVICE);
+            scoringView = li.inflate(R.layout.scoring_scoring, null);
+            final Button btnScoring = (Button)scoringView.findViewById(R.id.btnScoring);
+            btnScoring.setOnClickListener(new View.OnClickListener() {
+
+              public void onClick(final View v) {
+                final Intent i = new Intent(getApplicationContext(), Scoreboard.class);
+                i.putExtra("visit_id", currentVisit.getId());
+                startActivityForResult(i, RC_SCOREBOARD);
+              }
+            });
+            updateUI();
+          }
+          ((ViewPager)pager).addView(scoringView, 0);
+          return scoringView;
+        case 1:
+          if (photoView == null) {
+            final LayoutInflater li = (LayoutInflater)getSystemService(LAYOUT_INFLATER_SERVICE);
+            photoView = li.inflate(R.layout.scoring_targetinfo, null);
+
+            final Button takePicture = (Button)photoView.findViewById(R.id.btnTakePicture);
+            takePicture.setOnClickListener(new View.OnClickListener() {
+
+              public void onClick(final View v) {
+                if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+                  final Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
+                  final File targetDir = new File(Environment.getExternalStorageDirectory(), APP_FOLDER);
+                  targetDir.mkdirs();
+
+                  final File target = new File(targetDir, currentTarget.getId().toString() + ".jpg");
+
+                  final Uri outputFileUri = Uri.fromFile(target);
+                  intent.putExtra(MediaStore.EXTRA_OUTPUT, outputFileUri);
+                  startActivityForResult(intent, RC_TAKE_PICTORE);
+
+                }
+              }
+            });
+
+          }
+          ((ViewPager)pager).addView(photoView, 0);
+          return photoView;
+        default:
+          return null;
+      }
     }
   }
 
