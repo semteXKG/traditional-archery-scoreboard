@@ -62,9 +62,17 @@ containing a value of this type.
         public static final int red=0x7f040000;
     }
     public static final class drawable {
-        public static final int ic_launcher=0x7f020000;
-        public static final int not_available=0x7f020001;
-        public static final int rect=0x7f020002;
+        public static final int archery_256_256=0x7f020000;
+        public static final int archery_64_64=0x7f020001;
+        public static final int archery_front_icon_256_256=0x7f020002;
+        public static final int arrow_left_24_24=0x7f020003;
+        public static final int arrow_right_24_24=0x7f020004;
+        public static final int button=0x7f020005;
+        public static final int history_64_64=0x7f020006;
+        public static final int ic_launcher=0x7f020007;
+        public static final int not_available=0x7f020008;
+        public static final int rect=0x7f020009;
+        public static final int users_64_64=0x7f02000a;
     }
     public static final class id {
         public static final int LinearLayout1=0x7f050026;
