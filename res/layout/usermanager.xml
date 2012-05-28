@@ -17,19 +17,24 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal" >
 
-        <Button
+        <ImageButton
             android:id="@+id/button1"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="50dip"
             android:layout_weight="1.0"
-            android:text="@string/searchUser" />
+            android:scaleType="centerInside"
+            android:src="@drawable/search48"
+            android:background="@drawable/button_background" />
 
-        <Button
+        <ImageButton
             android:id="@+id/btnAdd"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="50dip"
             android:layout_weight="1.0"
-            android:text="@string/addUser" />
+            android:scaleType="centerInside"
+            android:src="@drawable/add_user48"
+            android:background="@drawable/button_background"/>
+        
     </LinearLayout>
 
 </LinearLayout>

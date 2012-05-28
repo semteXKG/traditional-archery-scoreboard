@@ -10,8 +10,8 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 
 import com.j256.ormlite.android.apptools.OrmLiteBaseActivity;
 
@@ -36,7 +36,7 @@ public class AddEditUser extends OrmLiteBaseActivity<DatabaseHelper> {
 
     final View view = findViewById(R.id.dummyview_col);
 
-    final Button button = (Button)findViewById(R.id.btnPicker);
+    final ImageButton button = (ImageButton)findViewById(R.id.btnPicker);
     button.setOnClickListener(new View.OnClickListener() {
 
       public void onClick(final View v) {
@@ -52,7 +52,7 @@ public class AddEditUser extends OrmLiteBaseActivity<DatabaseHelper> {
       }
     });
 
-    final Button btnSaveUser = (Button)findViewById(R.id.btnSaveUser);
+    final ImageButton btnSaveUser = (ImageButton)findViewById(R.id.btnSaveUser);
     btnSaveUser.setOnClickListener(new View.OnClickListener() {
 
       public void onClick(final View v) {
@@ -74,7 +74,7 @@ public class AddEditUser extends OrmLiteBaseActivity<DatabaseHelper> {
 
     });
 
-    final Button btnCancelSave = (Button)findViewById(R.id.btnCancelUser);
+    final ImageButton btnCancelSave = (ImageButton)findViewById(R.id.btnCancelUser);
     btnCancelSave.setOnClickListener(new View.OnClickListener() {
 
       public void onClick(final View v) {

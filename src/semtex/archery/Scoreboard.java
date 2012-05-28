@@ -69,14 +69,14 @@ public class Scoreboard extends OrmLiteBaseActivity<DatabaseHelper> {
     }
 
     tl.addView(tr);
-    final Map<Integer, Map<String, Double>> scoringData = reportData.getScoringData();
+    final Map<Integer, Map<String, Integer>> scoringData = reportData.getScoringData();
 
-    final Set<Entry<Integer, Map<String, Double>>> entrySet = scoringData.entrySet();
-    final TreeSet<Entry<Integer, Map<String, Double>>> sortedSet =
-        new TreeSet<Map.Entry<Integer, Map<String, Double>>>(new Comparator<Entry<Integer, Map<String, Double>>>() {
+    final Set<Entry<Integer, Map<String, Integer>>> entrySet = scoringData.entrySet();
+    final TreeSet<Entry<Integer, Map<String, Integer>>> sortedSet =
+        new TreeSet<Map.Entry<Integer, Map<String, Integer>>>(new Comparator<Entry<Integer, Map<String, Integer>>>() {
 
-          public int compare(final Entry<Integer, Map<String, Double>> lhs,
-              final Entry<Integer, Map<String, Double>> rhs) {
+          public int compare(final Entry<Integer, Map<String, Integer>> lhs,
+              final Entry<Integer, Map<String, Integer>> rhs) {
             if (lhs == null) {
               return -1;
             }
@@ -90,7 +90,7 @@ public class Scoreboard extends OrmLiteBaseActivity<DatabaseHelper> {
 
     sortedSet.addAll(entrySet);
 
-    for (final Map.Entry<Integer, Map<String, Double>> entry : sortedSet) {
+    for (final Map.Entry<Integer, Map<String, Integer>> entry : sortedSet) {
       tr = new TableRow(this);
       final int col = entry.getKey() % 2 == 0 ? COLOR_2 : COLOR_1;
       tv = new TextView(this);
@@ -100,7 +100,7 @@ public class Scoreboard extends OrmLiteBaseActivity<DatabaseHelper> {
 
       for (final UserVisit uv : v.getUserVisit()) {
         tv = new TextView(this);
-        final Double value = entry.getValue().get(uv.getUser().getUserName());
+        final Integer value = entry.getValue().get(uv.getUser().getUserName());
         tv.setText(value != null ? MessageFormat.format("{0,number,#.##}", value) : "-");
         tv.setBackgroundColor(col);
         tr.addView(tv, new TableRow.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, 0.2f));

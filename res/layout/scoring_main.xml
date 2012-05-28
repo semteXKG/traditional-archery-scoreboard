@@ -9,27 +9,32 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content" >
 
-        <Button
+        <ImageButton
             android:id="@+id/btnPrev"
             android:layout_width="50dip"
             android:layout_height="50dip"
             android:layout_alignParentLeft="true"
-            android:layout_alignParentTop="true" android:drawableLeft="@drawable/arrow_left_24_24" android:background="@drawable/button"/>
+            android:layout_alignParentTop="true" android:src="@drawable/arrow_left_24_24" 
+            android:background="@drawable/button_background"
+            android:contentDescription="Button that takes you to the previous target"
+            />
 
-        <Button
+        <ImageButton
             android:id="@+id/btnNext"
             android:layout_width="50dip"
             android:layout_height="50dip"
             android:layout_alignParentRight="true"
             android:layout_alignParentTop="true"
-            android:drawableLeft="@drawable/arrow_right_24_24" android:background="@drawable/button"/>
-        
+            android:src="@drawable/arrow_right_24_24" 
+            android:background="@drawable/button_background"/>
+               
         <TextView
             android:id="@+id/txtTargetNumber"
             android:layout_width="wrap_content"
-            android:layout_height="40dip"
+            android:layout_height="50dip"
             android:layout_centerHorizontal="true"
             android:layout_centerVertical="true"
+            android:gravity="center"
             android:text="Medium Text"
             android:textAppearance="?android:attr/textAppearanceMedium" android:layout_centerInParent="true"/>
 

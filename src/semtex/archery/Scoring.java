@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.*;
 
 import semtex.archery.entities.data.DatabaseHelper;
+import semtex.archery.entities.data.ExternalStorageManager;
 import semtex.archery.entities.data.entities.Target;
 import semtex.archery.entities.data.entities.TargetHit;
 import semtex.archery.entities.data.entities.UserVisit;
@@ -40,8 +41,6 @@ import com.polites.android.GestureImageView;
 public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
 
   public static final String TAG = Scoring.class.getName();
-
-  public static final String APP_FOLDER = "/TAS/";
 
   private Visit currentVisit;
 
@@ -142,7 +141,7 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
 
     initScoringMatrix();
 
-    final Button btnNext = (Button)findViewById(R.id.btnNext);
+    final ImageButton btnNext = (ImageButton)findViewById(R.id.btnNext);
     btnNext.setOnClickListener(new View.OnClickListener() {
 
       public void onClick(final View v) {
@@ -150,7 +149,7 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
       }
     });
 
-    final Button btnLast = (Button)findViewById(R.id.btnPrev);
+    final ImageButton btnLast = (ImageButton)findViewById(R.id.btnPrev);
     btnLast.setOnClickListener(new View.OnClickListener() {
 
       public void onClick(final View v) {
@@ -309,14 +308,6 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
     private View photoView = null;
 
 
-    private File buildBasePath() {
-      if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-        return null;
-      }
-      return new File(Environment.getExternalStorageDirectory(), APP_FOLDER);
-    }
-
-
     public void updateUI() {
       if (scoringView != null) {
         final TouchListView listView = (TouchListView)scoringView.findViewById(R.id.tlvUserScoring);
@@ -329,7 +320,7 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
       if (photoView != null) {
         final GestureImageView giv = (GestureImageView)photoView.findViewById(R.id.targetGestureImage);
         if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-          final File targetDir = buildBasePath();
+          final File targetDir = ExternalStorageManager.getApplicationPath();
           if (targetDir == null) {
             giv.setImageResource(R.drawable.not_available);
           } else {
@@ -409,13 +400,11 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
             takePicture.setOnClickListener(new View.OnClickListener() {
 
               public void onClick(final View v) {
-                if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+                if (ExternalStorageManager.isExternalStorageAvail()) {
                   final Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
-                  final File targetDir = new File(Environment.getExternalStorageDirectory(), APP_FOLDER);
-                  targetDir.mkdirs();
-
-                  final File target = new File(targetDir, currentTarget.getId().toString() + ".jpg");
+                  final File target =
+                      new File(ExternalStorageManager.getApplicationPath(), currentTarget.getId().toString() + ".jpg");
 
                   final Uri outputFileUri = Uri.fromFile(target);
                   intent.putExtra(MediaStore.EXTRA_OUTPUT, outputFileUri);

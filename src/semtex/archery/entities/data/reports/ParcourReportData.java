@@ -12,7 +12,11 @@ public class ParcourReportData {
 
   private Date parcourRevisionDate;
 
-  private final Map<Integer, Map<String, Double>> scoringData = new HashMap<Integer, Map<String, Double>>();
+  private final Map<Integer, Map<String, Integer>> scoringData = new HashMap<Integer, Map<String, Integer>>();
+
+  private Map<String, Double> avgPoints = new HashMap<String, Double>();
+
+  private Map<String, Integer> totalPoints = new HashMap<String, Integer>();
 
 
   public String getParcourName() {
@@ -35,8 +39,28 @@ public class ParcourReportData {
   }
 
 
-  public Map<Integer, Map<String, Double>> getScoringData() {
+  public Map<Integer, Map<String, Integer>> getScoringData() {
     return scoringData;
+  }
+
+
+  public Map<String, Double> getAvgPoints() {
+    return avgPoints;
+  }
+
+
+  public Map<String, Integer> getTotalPoints() {
+    return totalPoints;
+  }
+
+
+  public void setAvgPoints(final Map<String, Double> avgPoints) {
+    this.avgPoints = avgPoints;
+  }
+
+
+  public void setTotalPoints(final Map<String, Integer> totalPoints) {
+    this.totalPoints = totalPoints;
   }
 
 }

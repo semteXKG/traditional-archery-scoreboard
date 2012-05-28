@@ -1,9 +1,11 @@
 
 package semtex.archery;
 
+import java.io.File;
 import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,9 +15,14 @@ import semtex.archery.entities.data.ReportGenerator;
 import semtex.archery.entities.data.entities.UserVisit;
 import semtex.archery.entities.data.entities.Visit;
 import semtex.archery.entities.data.reports.ParcourReportData;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.text.Html;
+import android.util.Log;
 import android.view.*;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.*;
@@ -26,11 +33,17 @@ import com.j256.ormlite.android.apptools.OrmLiteBaseActivity;
 
 public class History extends OrmLiteBaseActivity<DatabaseHelper> {
 
+  private ReportGenerator generator;
+
   private static final int CTX_REMOVE_ITEM_ID = 1;
+
+  private static final int CTX_SHARE = 2;
 
   private static final String TAG = History.class.getName();
 
   public Map<Visit, ParcourReportData> reportCache = new HashMap<Visit, ParcourReportData>();
+
+  private final DateFormat dateFormatter = DateFormat.getDateInstance();
 
   private ListView lv;
 
@@ -42,6 +55,7 @@ public class History extends OrmLiteBaseActivity<DatabaseHelper> {
     super.onCreateContextMenu(menu, v, menuInfo);
     if (v.getId() == R.id.lvVisitHistory) {
       menu.add(Menu.NONE, CTX_REMOVE_ITEM_ID, Menu.NONE, "Remove");
+      menu.add(Menu.NONE, CTX_SHARE, Menu.NONE, "Share");
     }
   }
 
@@ -49,16 +63,60 @@ public class History extends OrmLiteBaseActivity<DatabaseHelper> {
   @Override
   public boolean onContextItemSelected(final MenuItem item) {
     final AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
+    final Visit visit = adapter.getItem(info.position);
     if (item.getItemId() == CTX_REMOVE_ITEM_ID) {
-      final Visit visit = adapter.getItem(info.position);
-      Toast.makeText(getApplicationContext(), "Disposing " + visit.getId(), Toast.LENGTH_SHORT).show();
 
+      final AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
+      alertDialog.setTitle("Remove Visit");
+      alertDialog.setMessage("Are you sure?");
+      alertDialog.setPositiveButton("Remove", new DialogInterface.OnClickListener() {
+
+        public void onClick(final DialogInterface dialog, final int which) {
+          for (final UserVisit uv : visit.getUserVisit()) {
+            getHelper().getTargetHitDao().deleteTargetHitsFromUserVisit(uv);
+            getHelper().getUserVisitDao().delete(uv);
+          }
+
+          getHelper().getVisitDao().delete(visit);
+          refreshVisitList();
+          Toast.makeText(getApplicationContext(), "Disposed " + visit.getId(), Toast.LENGTH_SHORT).show();
+        }
+      });
+
+      alertDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+
+        public void onClick(final DialogInterface dialog, final int which) {
+        }
+      });
+
+      alertDialog.show();
+
+    } else if (item.getItemId() == CTX_SHARE) {
+      final ArrayList<String> recipients = new ArrayList<String>();
       for (final UserVisit uv : visit.getUserVisit()) {
-        int disposed = getHelper().getTargetHitDao().deleteTargetHitsFromUserVisit(uv);
-        disposed = getHelper().getUserVisitDao().delete(uv);
+        if (uv.getUser().getMail() != null && !"".equals(uv.getUser().getMail())) {
+          recipients.add(uv.getUser().getMail());
+        }
       }
-      getHelper().getVisitDao().delete(visit);
-      refreshVisitList();
+      File report = null;
+      try {
+        report = generator.generatePDFReportForVisit(visit);
+      } catch(final Exception e) {
+        e.printStackTrace();
+      }
+      Log.i(TAG, "Found " + recipients.size() + " recpients");
+
+      final Intent sharingIntent = new Intent(Intent.ACTION_SEND);
+      sharingIntent.setType("text/html");
+      sharingIntent.putExtra(android.content.Intent.EXTRA_EMAIL, recipients.toArray(new String[recipients.size()]));
+      sharingIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "Results from "
+          + visit.getVersion().getParcour().getName() + " on " + dateFormatter.format(visit.getBeginTime()));
+      sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT,
+          Html.fromHtml(generator.generateHTMLReportForVisit(visit)));
+      if (report != null) {
+        sharingIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(report));
+      }
+      startActivity(Intent.createChooser(sharingIntent, "Share using"));
     }
     return true;
   }
@@ -68,6 +126,8 @@ public class History extends OrmLiteBaseActivity<DatabaseHelper> {
   protected void onCreate(final Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.history_visit);
+
+    generator = new ReportGenerator(History.this.getHelper());
 
     lv = (ListView)findViewById(R.id.lvVisitHistory);
     lv.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
@@ -100,8 +160,6 @@ public class History extends OrmLiteBaseActivity<DatabaseHelper> {
     private static final String USER_TEXTVIEW = "scoring line";
 
     public final String TAG = VisitHistoryAdapter.class.getName();
-
-    private final ReportGenerator generator = new ReportGenerator(History.this.getHelper());
 
     private final DateFormat dateFormatter = DateFormat.getDateInstance();
 
@@ -145,10 +203,8 @@ public class History extends OrmLiteBaseActivity<DatabaseHelper> {
       final LinearLayout ll = (LinearLayout)v.findViewById(R.id.llUserScores);
       ll.removeAllViews();
 
-      final Map<Integer, Map<String, Double>> data = reportData.getScoringData();
-
-      final Map<String, Double> avgPointsMap = data.get(0);
-      final Map<String, Double> totalPointsMap = data.get(-1);
+      final Map<String, Double> avgPointsMap = reportData.getAvgPoints();
+      final Map<String, Integer> totalPointsMap = reportData.getTotalPoints();
 
       for (final Map.Entry<String, Double> entries : avgPointsMap.entrySet()) {
         final LinearLayout.LayoutParams lp =
@@ -156,7 +212,7 @@ public class History extends OrmLiteBaseActivity<DatabaseHelper> {
                 android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
         lp.setMargins(30, 0, 0, 0);
 
-        final Double totalPoints = totalPointsMap.get(entries.getKey());
+        final Integer totalPoints = totalPointsMap.get(entries.getKey());
 
         final TextView tv = new TextView(v.getContext());
         tv.setId(View.NO_ID);

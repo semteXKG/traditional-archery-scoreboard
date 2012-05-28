@@ -29,7 +29,7 @@ public class UserManager extends OrmLiteBaseActivity<DatabaseHelper> {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.usermanager);
 
-    final Button addUser = (Button)findViewById(R.id.btnAdd);
+    final ImageButton addUser = (ImageButton)findViewById(R.id.btnAdd);
     addUser.setOnClickListener(new View.OnClickListener() {
 
       public void onClick(final View v) {

@@ -51,16 +51,19 @@
 	        android:layout_width="match_parent"
 	        android:layout_height="wrap_content" >
 
-	        <Button
+	        <ImageButton
 	            android:id="@+id/btnPicker"
-	            android:layout_width="wrap_content"
-	            android:layout_height="wrap_content"
+	            android:layout_width="50dip"
+	            android:layout_height="50dip"
+              android:scaleType="centerInside"
+              android:background="@drawable/button_background"
+              android:src="@drawable/colorwheel"
 	            android:text="@string/pick_color" />
 	
 	        <View
 	            android:id="@+id/dummyview_col"
 	            android:layout_width="0dip"
-	            android:layout_height="30dip"
+	            android:layout_height="50dip"
 	            android:layout_margin="2dip"
 	            android:layout_gravity="center_vertical"
 	            android:layout_weight="1.0"/>
@@ -72,17 +75,23 @@
 	        android:layout_width="match_parent"
 	        android:layout_height="match_parent" >
 
-	        <Button
+	        <ImageButton
 	            android:id="@+id/btnCancelUser"
 	            android:layout_width="wrap_content"
-	            android:layout_height="wrap_content"
+	            android:layout_height="50dip"
+              android:scaleType="centerInside"
 	            android:layout_weight="0.5"
+              android:src="@drawable/cancel48"
+              android:background="@drawable/button_background"
               android:text="@string/cancel" />
               
-	        <Button
+	        <ImageButton
 	            android:id="@+id/btnSaveUser"
 	            android:layout_width="wrap_content"
-	            android:layout_height="wrap_content"
+	            android:layout_height="50dip"
+              android:scaleType="centerInside"
+              android:src="@drawable/save48"
+              android:background="@drawable/button_background"              
 	            android:layout_weight="0.5"
               android:text="@string/save" android:layout_gravity="right"/>
 

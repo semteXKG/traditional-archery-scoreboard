@@ -9,20 +9,20 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_weight="0.333"
-        android:text="@string/user_manager" android:textSize="10pt" android:textStyle="bold" android:drawableLeft="@drawable/users_64_64" android:background="@drawable/button"/>
+        android:text="@string/user_manager" android:textSize="10pt" android:textStyle="bold" android:drawableLeft="@drawable/ic_menu_usermanager" android:background="@drawable/button_background"/>
 
     <Button
         android:id="@+id/btnStart"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_weight="0.333"
-        android:text="@string/start" android:textStyle="bold" android:textSize="10pt" android:drawableLeft="@drawable/archery_64_64" android:background="@drawable/button"/>
+        android:text="@string/start" android:textStyle="bold" android:textSize="10pt" android:drawableLeft="@drawable/archery_64_64" android:background="@drawable/button_background"/>
 
     <Button
         android:id="@+id/btnHistory"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_weight="0.333"
-        android:text="@string/history" android:textSize="10pt" android:textStyle="bold" android:drawableLeft="@drawable/history_64_64" android:background="@drawable/button"/>
+        android:text="@string/history" android:textSize="10pt" android:textStyle="bold" android:drawableLeft="@drawable/ic_menu_show_list" android:background="@drawable/button_background"/>
 
 </LinearLayout>
