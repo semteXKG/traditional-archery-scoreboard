@@ -2,6 +2,7 @@
 package semtex.archery.entities.data.dao;
 
 import java.sql.SQLException;
+import java.util.List;
 
 import semtex.archery.entities.data.entities.Target;
 import semtex.archery.entities.data.entities.TargetHit;
@@ -70,4 +71,15 @@ public class TargetHitDao extends BaseDaoImpl<TargetHit, Long> implements ITarge
         queryRaw(queryBuilder.prepareStatementString(), new DataType[] { DataType.INTEGER });
     return (Integer)results.getFirstResult()[0];
   }
+
+
+  public List<TargetHit> findTargetHitsByVisitAndTarget(final Visit currentVisit, final Target target)
+      throws SQLException {
+    final QueryBuilder<TargetHit, Long> qb = queryBuilder();
+    final Where<TargetHit, Long> where = qb.where();
+    where.and(where.eq(TargetHit.TARGET, target), where.in(TargetHit.USER_VISIT, currentVisit.getUserVisit()));
+    qb.setWhere(where);
+    return qb.query();
+  }
+
 }
