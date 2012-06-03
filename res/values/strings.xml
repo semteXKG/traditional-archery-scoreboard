@@ -19,5 +19,6 @@
     <string name="close">close</string>
     <string name="start_stop_edit_mode">enter / leave edit mode</string>
     <string name="take_picture">take picture</string>
+    <string name="menu_create_new_version">Create new version</string>
 
 </resources>

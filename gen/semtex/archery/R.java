@@ -174,6 +174,7 @@ containing a value of this type.
         public static final int hello=0x7f060000;
         public static final int history=0x7f060004;
         public static final int mail=0x7f060008;
+        public static final int menu_create_new_version=0x7f060012;
         public static final int pick_color=0x7f06000a;
         public static final int reorder=0x7f06000e;
         public static final int save=0x7f06000c;

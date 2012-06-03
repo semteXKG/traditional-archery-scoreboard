@@ -8,11 +8,10 @@ import java.util.*;
 
 import semtex.archery.entities.data.DatabaseHelper;
 import semtex.archery.entities.data.ExternalStorageManager;
-import semtex.archery.entities.data.entities.Target;
-import semtex.archery.entities.data.entities.TargetHit;
-import semtex.archery.entities.data.entities.UserVisit;
-import semtex.archery.entities.data.entities.Visit;
+import semtex.archery.entities.data.entities.*;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
@@ -53,6 +52,8 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
   private static final int RC_TAKE_PICTORE = 3;
 
   private static final int MENU_START_STOP_ORDERING = 1;
+
+  private static final int MENU_CREATE_NEW_VERSION = 2;
 
   private final Map<UserVisit, Integer> userPoints = new HashMap<UserVisit, Integer>();
 
@@ -103,11 +104,8 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
   @Override
   public boolean onCreateOptionsMenu(final Menu menu) {
     super.onCreateOptionsMenu(menu);
-
-    final int groupId = 0;
-    final int menuItemId = MENU_START_STOP_ORDERING;
-    final int menuItemOrdering = Menu.NONE;
-    final MenuItem mi = menu.add(groupId, menuItemId, menuItemOrdering, R.string.start_stop_edit_mode);
+    menu.add(0, MENU_START_STOP_ORDERING, Menu.NONE, R.string.start_stop_edit_mode);
+    menu.add(0, MENU_CREATE_NEW_VERSION, Menu.NONE, R.string.menu_create_new_version);
     return true;
   };
 
@@ -126,8 +124,65 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
         }
         adapter.notifyDataSetChanged();
         return true;
+      case MENU_CREATE_NEW_VERSION:
+        askNewParcourVersion();
+        return true;
     }
     return false;
+  }
+
+
+  private void askNewParcourVersion() {
+    final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+    builder.setTitle("Really create new version?");
+    builder.setMessage("This will create a new version of the current parcour!");
+    builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+
+      public void onClick(final DialogInterface dialog, final int which) {
+        generateNewParcourVersion();
+      }
+    });
+    builder.setNegativeButton("No", null);
+    builder.show();
+  }
+
+
+  protected void generateNewParcourVersion() {
+    final Version oldVersion = currentVisit.getVersion();
+    getHelper().getVersionDao().refresh(oldVersion);
+
+    final Version newVersion = new Version();
+    newVersion.setParcour(currentVisit.getVersion().getParcour());
+    newVersion.setCreated(new Date());
+
+    getHelper().getVersionDao().create(newVersion);
+
+    // copy all the older targets
+    for (final Target target : getHelper().getTargetDao().findTargetsByVersion(oldVersion)) {
+      // copy all entries till the one before our current position
+      if (target.getTargetNumber() < currentTarget.getTargetNumber()) {
+        final Target newTarget = new Target(target.getTargetNumber(), newVersion);
+        newTarget.setComment(target.getComment());
+        newTarget.setLatitude(target.getLatitude());
+        newTarget.setLongitude(target.getLongitude());
+        newTarget.setPictureLocation(target.getPictureLocation());
+        getHelper().getTargetDao().create(newTarget);
+
+        // re-map the targetHits
+        for (final TargetHit oldTH : getHelper().getTargetHitDao().findTargetHitsByVisitAndTarget(currentVisit, target)) {
+          oldTH.setTarget(newTarget);
+          getHelper().getTargetHitDao().update(oldTH);
+        }
+      }
+    }
+
+    currentVisit.setVersion(newVersion);
+    getHelper().getVisitDao().update(currentVisit);
+    // reload everything from database!
+    fetchSetupData();
+    updateUIElements();
+    // bla
+    Toast.makeText(getApplicationContext(), "Successfully changed to new version", Toast.LENGTH_LONG).show();
   }
 
 

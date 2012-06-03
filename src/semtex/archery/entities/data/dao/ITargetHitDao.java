@@ -2,6 +2,7 @@
 package semtex.archery.entities.data.dao;
 
 import java.sql.SQLException;
+import java.util.List;
 
 import semtex.archery.entities.data.entities.Target;
 import semtex.archery.entities.data.entities.TargetHit;
@@ -19,9 +20,12 @@ public interface ITargetHitDao extends Dao<TargetHit, Long> {
   Integer calculatePointsByUser(final UserVisit userVisit) throws SQLException;
 
 
-  public Integer getLatestTargetNumber(final Visit v) throws SQLException;
+  Integer getLatestTargetNumber(final Visit v) throws SQLException;
 
 
-  public Integer deleteTargetHitsFromUserVisit(final UserVisit uv) throws SQLException;
+  Integer deleteTargetHitsFromUserVisit(final UserVisit uv) throws SQLException;
+
+
+  List<TargetHit> findTargetHitsByVisitAndTarget(Visit currentVisit, Target target) throws SQLException;
 
 }

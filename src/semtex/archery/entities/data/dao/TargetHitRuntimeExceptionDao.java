@@ -2,6 +2,7 @@
 package semtex.archery.entities.data.dao;
 
 import java.sql.SQLException;
+import java.util.List;
 
 import semtex.archery.entities.data.entities.Target;
 import semtex.archery.entities.data.entities.TargetHit;
@@ -52,6 +53,15 @@ public class TargetHitRuntimeExceptionDao extends RuntimeExceptionDao<TargetHit,
   public Integer getLatestTargetNumber(final Visit v) {
     try {
       return dao.getLatestTargetNumber(v);
+    } catch(final SQLException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+
+  public List<TargetHit> findTargetHitsByVisitAndTarget(final Visit currentVisit, final Target target) {
+    try {
+      return dao.findTargetHitsByVisitAndTarget(currentVisit, target);
     } catch(final SQLException e) {
       throw new RuntimeException(e);
     }
