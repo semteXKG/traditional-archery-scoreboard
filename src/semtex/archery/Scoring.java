@@ -181,6 +181,7 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
     // reload everything from database!
     fetchSetupData();
     updateUIElements();
+    // bla
     Toast.makeText(getApplicationContext(), "Successfully changed to new version", Toast.LENGTH_LONG).show();
   }
 
