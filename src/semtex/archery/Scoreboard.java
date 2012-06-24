@@ -11,6 +11,7 @@ import semtex.archery.entities.data.entities.UserVisit;
 import semtex.archery.entities.data.entities.Visit;
 import semtex.archery.entities.data.reports.ParcourReportData;
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
@@ -20,6 +21,20 @@ import com.j256.ormlite.android.apptools.OrmLiteBaseActivity;
 
 
 public class Scoreboard extends OrmLiteBaseActivity<DatabaseHelper> {
+
+  private final class ScoringComparator implements Comparator<Entry<Integer, Map<String, Integer>>> {
+
+    public int compare(final Entry<Integer, Map<String, Integer>> lhs, final Entry<Integer, Map<String, Integer>> rhs) {
+      if (lhs == null) {
+        return -1;
+      }
+      if (rhs == null) {
+        return 1;
+      }
+
+      return lhs.getKey().compareTo(rhs.getKey());
+    }
+  }
 
   public static final int COLOR_1 = 0xFF696969;
 
@@ -53,10 +68,11 @@ public class Scoreboard extends OrmLiteBaseActivity<DatabaseHelper> {
 
     final TableLayout tl = (TableLayout)findViewById(R.id.tblScoring);
 
-    TableRow tr = new TableRow(this);
+    final TableRow tr = new TableRow(this);
 
     TextView tv = new TextView(this);
     tv.setText("");
+    tv.setTypeface(null, Typeface.BOLD);
     tv.setBackgroundColor(COLOR_1);
 
     tr.addView(tv, new TableRow.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, 0.2f));
@@ -64,6 +80,7 @@ public class Scoreboard extends OrmLiteBaseActivity<DatabaseHelper> {
     for (final UserVisit uv : v.getUserVisit()) {
       tv = new TextView(this);
       tv.setText(uv.getUser().getUserName());
+      tv.setTypeface(null, Typeface.BOLD);
       tv.setBackgroundColor(COLOR_1);
       tr.addView(tv, new TableRow.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, 0.2f));
     }
@@ -73,40 +90,27 @@ public class Scoreboard extends OrmLiteBaseActivity<DatabaseHelper> {
 
     final Set<Entry<Integer, Map<String, Integer>>> entrySet = scoringData.entrySet();
     final TreeSet<Entry<Integer, Map<String, Integer>>> sortedSet =
-        new TreeSet<Map.Entry<Integer, Map<String, Integer>>>(new Comparator<Entry<Integer, Map<String, Integer>>>() {
-
-          public int compare(final Entry<Integer, Map<String, Integer>> lhs,
-              final Entry<Integer, Map<String, Integer>> rhs) {
-            if (lhs == null) {
-              return -1;
-            }
-            if (rhs == null) {
-              return 1;
-            }
-
-            return lhs.getKey().compareTo(rhs.getKey());
-          }
-        });
+        new TreeSet<Map.Entry<Integer, Map<String, Integer>>>(new ScoringComparator());
 
     sortedSet.addAll(entrySet);
+    ArrayList<Double> values = new ArrayList<Double>();
+    for (final UserVisit uv : v.getUserVisit()) {
+      values.add(reportData.getAvgPoints().get(uv.getUser().getUserName()));
+    }
+    addLineToTable(tl, "average", values, true);
+
+    values = new ArrayList<Double>();
+    for (final UserVisit uv : v.getUserVisit()) {
+      values.add(reportData.getTotalPoints().get(uv.getUser().getUserName()) * 1.0);
+    }
+    addLineToTable(tl, "total", values, true);
 
     for (final Map.Entry<Integer, Map<String, Integer>> entry : sortedSet) {
-      tr = new TableRow(this);
-      final int col = entry.getKey() % 2 == 0 ? COLOR_2 : COLOR_1;
-      tv = new TextView(this);
-      tv.setText(entry.getKey().toString());
-      tv.setBackgroundColor(col);
-      tr.addView(tv, new TableRow.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, 0.2f));
-
+      values = new ArrayList<Double>();
       for (final UserVisit uv : v.getUserVisit()) {
-        tv = new TextView(this);
-        final Integer value = entry.getValue().get(uv.getUser().getUserName());
-        tv.setText(value != null ? MessageFormat.format("{0,number,#.##}", value) : "-");
-        tv.setBackgroundColor(col);
-        tr.addView(tv, new TableRow.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, 0.2f));
-
+        values.add(entry.getValue().get(uv.getUser().getUserName()) * 1.0);
       }
-      tl.addView(tr);
+      addLineToTable(tl, entry.getKey().toString(), values, entry.getKey() % 2 == 0);
     }
 
     final Button btnVisitClose = (Button)findViewById(R.id.btnVisitClose);
@@ -129,5 +133,25 @@ public class Scoreboard extends OrmLiteBaseActivity<DatabaseHelper> {
       }
     });
 
+  }
+
+
+  private void addLineToTable(final TableLayout tl, final String key, final ArrayList<Double> values,
+      final boolean isOdd) {
+    final TableRow tr = new TableRow(this);
+    final int col = isOdd ? COLOR_2 : COLOR_1;
+    TextView tv = new TextView(this);
+    tv.setText(key);
+    tv.setTypeface(null, Typeface.BOLD);
+    tv.setBackgroundColor(col);
+    tr.addView(tv, new TableRow.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, 0.2f));
+
+    for (final Double value : values) {
+      tv = new TextView(this);
+      tv.setText(value != null ? MessageFormat.format("{0,number,#.##}", value) : "-");
+      tv.setBackgroundColor(col);
+      tr.addView(tv, new TableRow.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, 0.2f));
+    }
+    tl.addView(tr);
   }
 }
