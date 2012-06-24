@@ -5,7 +5,7 @@
  * should not be modified by hand.
  */
 
-package semtex.archery;
+package it.sephiroth.android.library.imagezoom;
 
 public final class R {
     public static final class attr {

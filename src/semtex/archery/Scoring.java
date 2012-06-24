@@ -1,6 +1,8 @@
 
 package semtex.archery;
 
+import it.sephiroth.android.library.imagezoom.ImageViewTouch;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -20,6 +22,7 @@ import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.GradientDrawable.Orientation;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -34,7 +37,6 @@ import com.commonsware.cwac.tlv.TouchListView.DropListener;
 import com.j256.ormlite.android.apptools.OrmLiteBaseActivity;
 import com.j256.ormlite.dao.ForeignCollection;
 import com.j256.ormlite.dao.RuntimeExceptionDao;
-import com.polites.android.GestureImageView;
 
 
 public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
@@ -351,6 +353,9 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
       finish();
 
     } else if (requestCode == RC_TAKE_PICTORE && resultCode == RESULT_OK) {
+      final String location = currentTarget.getId().toString() + ".jpg";
+      currentTarget.setPictureLocation(location);
+      getHelper().getTargetDao().update(currentTarget);
       updateUIElements();
     }
   }
@@ -372,23 +377,41 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
         listView.setAdapter(adapter);
       }
       if (photoView != null) {
-        final GestureImageView giv = (GestureImageView)photoView.findViewById(R.id.targetGestureImage);
-        if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-          final File targetDir = ExternalStorageManager.getApplicationPath();
-          if (targetDir == null) {
-            giv.setImageResource(R.drawable.not_available);
-          } else {
-            final File targetFile = new File(targetDir, currentTarget.getId() + ".jpg");
-            if (targetFile.exists()) {
-              final Uri targetUri = Uri.fromFile(targetFile);
-              giv.setImageBitmap(readBitmap(targetUri));
-            } else {
-              giv.setImageResource(R.drawable.not_available);
+        final ImageViewTouch ivt = (ImageViewTouch)photoView.findViewById(R.id.targetGestureImage);
+        ivt.clear();
+
+        final AsyncTask<String, Void, Bitmap> loader = new AsyncTask<String, Void, Bitmap>() {
+
+          @Override
+          protected Bitmap doInBackground(final String... params) {
+            if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+
+              final String location = params[0];
+
+              final File targetDir = ExternalStorageManager.getApplicationPath();
+              if (targetDir == null || location == null) {
+                return BitmapFactory.decodeResource(getResources(), R.drawable.not_available);
+              }
+
+              final File targetFile = new File(targetDir, location);
+              if (targetFile.exists()) {
+                final Uri targetUri = Uri.fromFile(targetFile);
+                return readBitmap(targetUri);
+              }
             }
-          }
-        }
-      }
-    }
+            return BitmapFactory.decodeResource(getResources(), R.drawable.not_available);
+          } // doInBackground
+
+
+          @Override
+          protected void onPostExecute(final Bitmap result) {
+            ivt.setImageBitmap(result, true);
+          } // onPostExecute
+
+        };
+        loader.execute(currentTarget.getPictureLocation());
+      } // if photoview != null
+    } // updateUi
 
 
     public Bitmap readBitmap(final Uri selectedImage) {
@@ -441,9 +464,9 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
                 startActivityForResult(i, RC_SCOREBOARD);
               }
             });
-            updateUI();
           }
           ((ViewPager)pager).addView(scoringView, 0);
+          updateUI();
           return scoringView;
         case 1:
           if (photoView == null) {
@@ -470,6 +493,7 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
 
           }
           ((ViewPager)pager).addView(photoView, 0);
+          updateUI();
           return photoView;
         default:
           return null;

@@ -19,7 +19,6 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.text.Html;
 import android.util.Log;
@@ -98,12 +97,12 @@ public class History extends OrmLiteBaseActivity<DatabaseHelper> {
           recipients.add(uv.getUser().getMail());
         }
       }
-      File report = null;
-      try {
-        report = generator.generatePDFReportForVisit(visit);
-      } catch(final Exception e) {
-        e.printStackTrace();
-      }
+      final File report = null;
+      // try {
+      // report = generator.generatePDFReportForVisit(visit);
+      // } catch(final Exception e) {
+      // e.printStackTrace();
+      // }
       Log.i(TAG, "Found " + recipients.size() + " recpients");
 
       final Intent sharingIntent = new Intent(Intent.ACTION_SEND);
@@ -113,9 +112,9 @@ public class History extends OrmLiteBaseActivity<DatabaseHelper> {
           + visit.getVersion().getParcour().getName() + " on " + dateFormatter.format(visit.getBeginTime()));
       sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT,
           Html.fromHtml(generator.generateHTMLReportForVisit(visit)));
-      if (report != null) {
-        sharingIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(report));
-      }
+      // if (report != null) {
+      // sharingIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(report));
+      // }
       startActivity(Intent.createChooser(sharingIntent, "Share using"));
     }
     return true;
