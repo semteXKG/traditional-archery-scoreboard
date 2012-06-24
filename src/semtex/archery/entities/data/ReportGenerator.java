@@ -16,6 +16,7 @@ import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.TreeSet;
 
 import semtex.archery.entities.data.entities.Parcour;
 import semtex.archery.entities.data.entities.UserVisit;
@@ -26,6 +27,7 @@ import android.util.Log;
 
 import com.j256.ormlite.dao.GenericRawResults;
 import com.lowagie.text.*;
+import com.lowagie.text.pdf.GrayColor;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
@@ -36,6 +38,8 @@ import com.lowagie.text.pdf.PdfWriter;
  * 
  */
 public class ReportGenerator {
+
+  private static final int PDF_COLUMN_PADDING = 5;
 
   private static final String TAG = ReportGenerator.class.getName();
 
@@ -52,6 +56,10 @@ public class ReportGenerator {
   private static Font tableFont = FontFactory.getFont(FontFactory.COURIER, 12);
 
   private static Font tableFontBold = FontFactory.getFont(FontFactory.COURIER, 12, Font.BOLD);
+
+  private static final GrayColor evenBg = new GrayColor(200);
+
+  private static final GrayColor oddBg = new GrayColor(230);
 
 
   public ReportGenerator(final DatabaseHelper daoHelper) {
@@ -82,7 +90,6 @@ public class ReportGenerator {
                 + "LEFT JOIN user_visit uv ON target_hit.user = uv.id " + "LEFT JOIN user u ON uv.user_id = u.id "
                 + "WHERE visit.id=" + visit.getId() + " AND uv.visit_id=" + visit.getId()
                 + " ORDER BY target.target_number");
-    // new DataType[] { DataType.STRING, DataType.INTEGER_OBJ, DataType.INTEGER_OBJ
     final Map<Integer, Map<String, Integer>> scoringData = reportData.getScoringData();
 
     for (final String[] objects : queryRaw) {
@@ -118,7 +125,10 @@ public class ReportGenerator {
   public String generateHTMLReportForVisit(final Visit visit) {
     final ParcourReportData data = generateReportForVisit(visit);
     final StringBuilder builder = new StringBuilder();
-    builder.append("<h1>" + visit.getVersion().getParcour().getName() + "</h2><br>");
+    builder.append("<h1>" + visit.getVersion().getParcour().getName() + " (Version: "
+        + dateFormatter.format(visit.getVersion().getCreated())
+        + (visit.getVersion().getName() != null ? " - " + visit.getVersion().getName() : "") + "</h2><br>");
+
     builder.append("<h4>" + visit.getBeginTime() + "</h4><br>");
     builder.append("<b>" + String.format("%10s", "Archers:") + "</b>");
     Iterator<UserVisit> it = visit.getUserVisit().iterator();
@@ -135,7 +145,7 @@ public class ReportGenerator {
           + (it.hasNext() ? ", " : ""));
     }
 
-    builder.append("<br><b>" + String.format("%10s", "avg") + "</b>");
+    builder.append("<br><b>" + String.format("%10s", "average") + "</b>");
     it = visit.getUserVisit().iterator();
     while (it.hasNext()) {
       final UserVisit uv = it.next();
@@ -144,16 +154,20 @@ public class ReportGenerator {
           + (it.hasNext() ? ", " : ""));
     }
 
-    for (final Map.Entry<Integer, Map<String, Integer>> entry : data.getScoringData().entrySet()) {
-      builder.append("<br><b>" + String.format("%10s", entry.getKey()) + "</b> | ");
+    final TreeSet<Integer> keySet = new TreeSet<Integer>(data.getScoringData().keySet());
+    for (final Integer key : keySet) {
+      final Map<String, Integer> entry = data.getScoringData().get(key);
+
+      builder.append("<br><b>" + String.format("%10s", key) + "</b> | ");
       it = visit.getUserVisit().iterator();
       while (it.hasNext()) {
         final UserVisit uv = it.next();
-        builder.append(String.format("%10s", entry.getValue().get(uv.getUser().getUserName()) != null ? entry
-            .getValue().get(uv.getUser().getUserName()) : "-")
+        builder.append(String.format("%10s",
+            entry.get(uv.getUser().getUserName()) != null ? entry.get(uv.getUser().getUserName()) : "-")
             + (it.hasNext() ? ", " : ""));
       }
     }
+
     return builder.toString();
   }
 
@@ -173,7 +187,15 @@ public class ReportGenerator {
     p.setAlignment(Element.ALIGN_CENTER);
     doc.add(p);
     // new line
-    doc.add(new Paragraph(" "));
+
+    generateNewLines(doc, 3);
+
+    p = new Paragraph();
+    p.add(new Chunk("Parcour created: ", timeFont));
+    p.add(new Chunk(dateFormatter.format(visit.getVersion().getCreated()), timeFont2));
+    doc.add(p);
+
+    generateNewLines(doc, 1);
 
     p = new Paragraph();
     p.add(new Chunk("Begin: ", timeFont));
@@ -185,60 +207,91 @@ public class ReportGenerator {
 
     doc.add(p);
 
-    doc.add(new Paragraph(" "));
+    generateNewLines(doc, 2);
 
     final PdfPTable table = new PdfPTable(visit.getUserVisit().size() + 1);
     PdfPCell cell = new PdfPCell();
     cell.setBorderWidthBottom(2);
+    cell.setBackgroundColor(evenBg);
 
     table.addCell(cell);
     for (final UserVisit uv : visit.getUserVisit()) {
       cell = new PdfPCell(new Phrase(uv.getUser().getUserName(), tableFontBold));
       cell.setHorizontalAlignment(Element.ALIGN_CENTER);
       cell.setBorderWidthBottom(2);
+      cell.setBackgroundColor(evenBg);
+      setCellPaddings(cell, PDF_COLUMN_PADDING);
       table.addCell(cell);
     }
 
     cell = new PdfPCell(new Phrase("total", tableFontBold));
     cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+    cell.setBackgroundColor(oddBg);
+    setCellPaddings(cell, PDF_COLUMN_PADDING);
     table.addCell(cell);
     for (final UserVisit uv : visit.getUserVisit()) {
       cell = new PdfPCell(new Phrase(data.getTotalPoints().get(uv.getUser().getUserName()).toString(), tableFont));
       cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+      setCellPaddings(cell, PDF_COLUMN_PADDING);
+      cell.setBackgroundColor(oddBg);
       table.addCell(cell);
     }
 
     cell = new PdfPCell(new Phrase("avg", tableFontBold));
     cell.setHorizontalAlignment(Element.ALIGN_CENTER);
     cell.setBorderWidthBottom(2);
+    cell.setBackgroundColor(evenBg);
+    setCellPaddings(cell, PDF_COLUMN_PADDING);
     table.addCell(cell);
-
     for (final UserVisit uv : visit.getUserVisit()) {
       final Double value = data.getAvgPoints().get(uv.getUser().getUserName());
       cell = new PdfPCell(new Phrase(value != null ? MessageFormat.format("{0,number,#.##}", value) : "-", tableFont));
       cell.setBorderWidthBottom(2);
       cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+      cell.setBackgroundColor(evenBg);
+      setCellPaddings(cell, PDF_COLUMN_PADDING);
       table.addCell(cell);
     }
 
-    for (final Map.Entry<Integer, Map<String, Integer>> entry : data.getScoringData().entrySet()) {
-      cell = new PdfPCell(new Phrase(new Phrase(entry.getKey().toString(), tableFontBold)));
+    int modCounter = 0;
+
+    final TreeSet<Integer> keySet = new TreeSet<Integer>(data.getScoringData().keySet());
+
+    for (final Integer key : keySet) {
+      final Map<String, Integer> entry = data.getScoringData().get(key);
+      cell = new PdfPCell(new Phrase(new Phrase(key.toString(), tableFontBold)));
       cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+      cell.setBackgroundColor(modCounter % 2 == 0 ? oddBg : evenBg);
       table.addCell(cell);
       for (final UserVisit uv : visit.getUserVisit()) {
         cell =
-            new PdfPCell(new Phrase(entry.getValue().get(uv.getUser().getUserName()) != null ? entry.getValue()
-                .get(uv.getUser().getUserName()).toString() : "-", tableFont));
+            new PdfPCell(new Phrase(entry.get(uv.getUser().getUserName()) != null ? entry.get(
+                uv.getUser().getUserName()).toString() : "-", tableFont));
         cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        cell.setBackgroundColor(modCounter % 2 == 0 ? oddBg : evenBg);
         table.addCell(cell);
       }
+      modCounter++;
     }
+
     doc.add(table);
 
     doc.close();
     fos.close();
     return file;
-    // return null;
+  }
+
+
+  private void setCellPaddings(final PdfPCell cell, final float cellPadding) {
+    cell.setPaddingBottom(cellPadding);
+    cell.setPaddingTop(cellPadding);
+  }
+
+
+  private void generateNewLines(final Document doc, final int lineCount) throws DocumentException {
+    for (int i = 0; i < lineCount; i++) {
+      doc.add(new Paragraph(" "));
+    }
   }
 
 
