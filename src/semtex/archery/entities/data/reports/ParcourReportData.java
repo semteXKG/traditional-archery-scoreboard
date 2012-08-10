@@ -12,6 +12,10 @@ public class ParcourReportData {
 
   private Date parcourRevisionDate;
 
+  private Date beginTime;
+
+  private Date endTime;
+
   private final Map<Integer, Map<String, Integer>> scoringData = new HashMap<Integer, Map<String, Integer>>();
 
   private Map<String, Double> avgPoints = new HashMap<String, Double>();
@@ -61,6 +65,26 @@ public class ParcourReportData {
 
   public void setTotalPoints(final Map<String, Integer> totalPoints) {
     this.totalPoints = totalPoints;
+  }
+
+
+  public Date getBeginTime() {
+    return beginTime;
+  }
+
+
+  public void setBeginTime(final Date beginTime) {
+    this.beginTime = beginTime;
+  }
+
+
+  public Date getEndTime() {
+    return endTime;
+  }
+
+
+  public void setEndTime(final Date endTime) {
+    this.endTime = endTime;
   }
 
 }

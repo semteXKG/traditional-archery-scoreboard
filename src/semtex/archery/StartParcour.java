@@ -5,7 +5,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.UUID;
 
 import semtex.archery.entities.data.DatabaseHelper;
 import semtex.archery.entities.data.entities.*;
@@ -154,7 +153,7 @@ public class StartParcour extends OrmLiteBaseActivity<DatabaseHelper> {
     // find latest version
     Version v = getHelper().getVersionDao().findLatestVersion(parcour);
     if (v == null) {
-      v = new Version(UUID.randomUUID().toString(), parcour);
+      v = new Version(null, parcour);
       getHelper().getVersionDao().create(v);
 
       // Insert the first target

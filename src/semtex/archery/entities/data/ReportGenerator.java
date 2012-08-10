@@ -8,21 +8,32 @@
 
 package semtex.archery.entities.data;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.MessageFormat;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.TreeSet;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.List;
 
 import semtex.archery.entities.data.entities.Parcour;
 import semtex.archery.entities.data.entities.UserVisit;
 import semtex.archery.entities.data.entities.Version;
 import semtex.archery.entities.data.entities.Visit;
+import semtex.archery.entities.data.reports.JsonVisitReport;
 import semtex.archery.entities.data.reports.ParcourReportData;
 import android.util.Log;
 
+import com.fasterxml.jackson.core.JsonGenerationException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.j256.ormlite.dao.GenericRawResults;
+import com.lowagie.text.*;
+import com.lowagie.text.pdf.GrayColor;
+import com.lowagie.text.pdf.PdfPCell;
+import com.lowagie.text.pdf.PdfPTable;
+import com.lowagie.text.pdf.PdfWriter;
 
 
 /**
@@ -39,20 +50,24 @@ public class ReportGenerator {
 
   private final DateFormat dateFormatter = DateFormat.getDateInstance();
 
+  // private final DateFormat parcourVersionDateFormatter = new SimpleDateFormater("YYYY-MM-dd");
 
-  // private static Font titleFont = FontFactory.getFont(FontFactory.COURIER, 28, Font.BOLD);
-  //
-  // private static Font timeFont = FontFactory.getFont(FontFactory.COURIER, 14, Font.BOLD);
-  //
-  // private static Font timeFont2 = FontFactory.getFont(FontFactory.COURIER, 14);
-  //
-  // private static Font tableFont = FontFactory.getFont(FontFactory.COURIER, 12);
-  //
-  // private static Font tableFontBold = FontFactory.getFont(FontFactory.COURIER, 12, Font.BOLD);
-  //
-  // private static final GrayColor evenBg = new GrayColor(200);
-  //
-  // private static final GrayColor oddBg = new GrayColor(230);
+  private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+
+  private static Font titleFont = FontFactory.getFont(FontFactory.COURIER, 28, Font.BOLD);
+
+  private static Font timeFont = FontFactory.getFont(FontFactory.COURIER, 14, Font.BOLD);
+
+  private static Font timeFont2 = FontFactory.getFont(FontFactory.COURIER, 14);
+
+  private static Font tableFont = FontFactory.getFont(FontFactory.COURIER, 12);
+
+  private static Font tableFontBold = FontFactory.getFont(FontFactory.COURIER, 12, Font.BOLD);
+
+  private static final GrayColor evenBg = new GrayColor(200);
+
+  private static final GrayColor oddBg = new GrayColor(230);
+
 
   public ReportGenerator(final DatabaseHelper daoHelper) {
     this.daoHelper = daoHelper;
@@ -72,6 +87,9 @@ public class ReportGenerator {
 
     reportData.setParcourName(parcour.getName());
     reportData.setParcourRevisionDate(version.getCreated());
+    reportData.setBeginTime(visit.getBeginTime());
+    reportData.setEndTime(visit.getEndTime());
+
     Log.i(TAG, "STARTING NEW");
     final GenericRawResults<String[]> queryRaw =
         daoHelper.getParcourDao().queryRaw(
@@ -114,6 +132,40 @@ public class ReportGenerator {
   }
 
 
+  public List<String> generateJsonObjectsForVisit(final Visit visit) {
+    final ObjectMapper objectMapper = new ObjectMapper();
+    objectMapper.setDateFormat(DateFormat.getDateTimeInstance());
+    final List<String> reports = new LinkedList<String>();
+    final ParcourReportData data = generateReportForVisit(visit);
+    for (final UserVisit uservisit : visit.getUserVisit()) {
+      final JsonVisitReport report = new JsonVisitReport();
+      report.setLabel(data.getParcourName() + " (" + sdf.format(data.getParcourRevisionDate()) + ")");
+      report.setName(uservisit.getUser().getUserName());
+      report.setVisitDate(data.getBeginTime());
+      report.setParcourDate(data.getParcourRevisionDate());
+
+      final SortedMap<Integer, Integer> scoreMap = new TreeMap<Integer, Integer>();
+      scoreMap.put(0, 0);
+
+      for (final Map.Entry<Integer, Map<String, Integer>> entry : data.getScoringData().entrySet()) {
+        scoreMap.put(entry.getKey(), entry.getValue().get(uservisit.getUser().getUserName()));
+      }
+      report.setData(scoreMap);
+      try {
+        reports.add(objectMapper.writeValueAsString(report));
+      } catch(final JsonGenerationException e) {
+        Log.e(TAG, "error while serializing json", e);
+      } catch(final JsonMappingException e) {
+        Log.e(TAG, "error while serializing json", e);
+      } catch(final IOException e) {
+        Log.e(TAG, "error while serializing json", e);
+      }
+    }
+
+    return reports;
+  }
+
+
   public String generateHTMLReportForVisit(final Visit visit) {
     final ParcourReportData data = generateReportForVisit(visit);
     final StringBuilder builder = new StringBuilder();
@@ -121,7 +173,7 @@ public class ReportGenerator {
         + dateFormatter.format(visit.getVersion().getCreated())
         + (visit.getVersion().getName() != null ? " - " + visit.getVersion().getName() : "") + "</h2><br>");
 
-    builder.append("<h4>" + visit.getBeginTime() + "</h4><br>");
+    builder.append("<h4>" + visit.getBeginTime() + " - " + visit.getEndTime() + "</h4><br>");
     builder.append("<b>" + String.format("%10s", "Archers:") + "</b>");
     Iterator<UserVisit> it = visit.getUserVisit().iterator();
     while (it.hasNext()) {
@@ -164,126 +216,128 @@ public class ReportGenerator {
   }
 
 
-  // public File generatePDFReportForVisit(final Visit visit) throws DocumentException, IOException {
-  // final ParcourReportData data = generateReportForVisit(visit);
-  //
-  // final Document doc = new Document(PageSize.A4, 30, 30, 30, 30);
-  // final File file = new File(ExternalStorageManager.getApplicationPath(), File.separator + visit.getId() + ".pdf");
-  // final FileOutputStream fos =
-  // new FileOutputStream(new File(ExternalStorageManager.getApplicationPath(), File.separator + visit.getId()
-  // + ".pdf"));
-  // PdfWriter.getInstance(doc, fos);
-  // doc.open();
-  // Paragraph p = new Paragraph();
-  // p.add(new Chunk(visit.getVersion().getParcour().getName(), titleFont));
-  // p.setAlignment(Element.ALIGN_CENTER);
-  // doc.add(p);
-  // // new line
-  //
-  // generateNewLines(doc, 3);
-  //
-  // p = new Paragraph();
-  // p.add(new Chunk("Parcour created: ", timeFont));
-  // p.add(new Chunk(dateFormatter.format(visit.getVersion().getCreated()), timeFont2));
-  // doc.add(p);
-  //
-  // generateNewLines(doc, 1);
-  //
-  // p = new Paragraph();
-  // p.add(new Chunk("Begin: ", timeFont));
-  // p.add(new Chunk(visit.getBeginTime().toLocaleString() + "\n", timeFont2));
-  // p.add(new Chunk("End:   ", timeFont));
-  // if (visit.getEndTime() != null) {
-  // p.add(new Chunk(visit.getEndTime().toLocaleString(), timeFont2));
-  // }
-  //
-  // doc.add(p);
-  //
-  // generateNewLines(doc, 2);
-  //
-  // final PdfPTable table = new PdfPTable(visit.getUserVisit().size() + 1);
-  // PdfPCell cell = new PdfPCell();
-  // cell.setBorderWidthBottom(2);
-  // cell.setBackgroundColor(evenBg);
-  //
-  // table.addCell(cell);
-  // for (final UserVisit uv : visit.getUserVisit()) {
-  // cell = new PdfPCell(new Phrase(uv.getUser().getUserName(), tableFontBold));
-  // cell.setHorizontalAlignment(Element.ALIGN_CENTER);
-  // cell.setBorderWidthBottom(2);
-  // cell.setBackgroundColor(evenBg);
-  // setCellPaddings(cell, PDF_COLUMN_PADDING);
-  // table.addCell(cell);
-  // }
-  //
-  // cell = new PdfPCell(new Phrase("total", tableFontBold));
-  // cell.setHorizontalAlignment(Element.ALIGN_CENTER);
-  // cell.setBackgroundColor(oddBg);
-  // setCellPaddings(cell, PDF_COLUMN_PADDING);
-  // table.addCell(cell);
-  // for (final UserVisit uv : visit.getUserVisit()) {
-  // cell = new PdfPCell(new Phrase(data.getTotalPoints().get(uv.getUser().getUserName()).toString(), tableFont));
-  // cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
-  // setCellPaddings(cell, PDF_COLUMN_PADDING);
-  // cell.setBackgroundColor(oddBg);
-  // table.addCell(cell);
-  // }
-  //
-  // cell = new PdfPCell(new Phrase("avg", tableFontBold));
-  // cell.setHorizontalAlignment(Element.ALIGN_CENTER);
-  // cell.setBorderWidthBottom(2);
-  // cell.setBackgroundColor(evenBg);
-  // setCellPaddings(cell, PDF_COLUMN_PADDING);
-  // table.addCell(cell);
-  // for (final UserVisit uv : visit.getUserVisit()) {
-  // final Double value = data.getAvgPoints().get(uv.getUser().getUserName());
-  // cell = new PdfPCell(new Phrase(value != null ? MessageFormat.format("{0,number,#.##}", value) : "-", tableFont));
-  // cell.setBorderWidthBottom(2);
-  // cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
-  // cell.setBackgroundColor(evenBg);
-  // setCellPaddings(cell, PDF_COLUMN_PADDING);
-  // table.addCell(cell);
-  // }
-  //
-  // int modCounter = 0;
-  //
-  // final TreeSet<Integer> keySet = new TreeSet<Integer>(data.getScoringData().keySet());
-  //
-  // for (final Integer key : keySet) {
-  // final Map<String, Integer> entry = data.getScoringData().get(key);
-  // cell = new PdfPCell(new Phrase(new Phrase(key.toString(), tableFontBold)));
-  // cell.setHorizontalAlignment(Element.ALIGN_CENTER);
-  // cell.setBackgroundColor(modCounter % 2 == 0 ? oddBg : evenBg);
-  // table.addCell(cell);
-  // for (final UserVisit uv : visit.getUserVisit()) {
-  // cell =
-  // new PdfPCell(new Phrase(entry.get(uv.getUser().getUserName()) != null ? entry.get(
-  // uv.getUser().getUserName()).toString() : "-", tableFont));
-  // cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
-  // cell.setBackgroundColor(modCounter % 2 == 0 ? oddBg : evenBg);
-  // table.addCell(cell);
-  // }
-  // modCounter++;
-  // }
-  //
-  // doc.add(table);
-  //
-  // doc.close();
-  // fos.close();
-  // return file;
-  // }
+  public File generatePDFReportForVisit(final Visit visit) throws DocumentException, IOException {
+    final ParcourReportData data = generateReportForVisit(visit);
 
-  // private void setCellPaddings(final PdfPCell cell, final float cellPadding) {
-  // cell.setPaddingBottom(cellPadding);
-  // cell.setPaddingTop(cellPadding);
-  // }
-  //
-  //
-  // private void generateNewLines(final Document doc, final int lineCount) throws DocumentException {
-  // for (int i = 0; i < lineCount; i++) {
-  // doc.add(new Paragraph(" "));
-  // }
-  // }
+    final Document doc = new Document(PageSize.A4, 30, 30, 30, 30);
+    final File file = new File(ExternalStorageManager.getApplicationPath(), File.separator + visit.getId() + ".pdf");
+    final FileOutputStream fos =
+        new FileOutputStream(new File(ExternalStorageManager.getApplicationPath(), File.separator + visit.getId()
+            + ".pdf"));
+    PdfWriter.getInstance(doc, fos);
+    doc.open();
+    Paragraph p = new Paragraph();
+    p.add(new Chunk(visit.getVersion().getParcour().getName(), titleFont));
+    p.setAlignment(Element.ALIGN_CENTER);
+    doc.add(p);
+    // new line
+
+    generateNewLines(doc, 3);
+
+    p = new Paragraph();
+    p.add(new Chunk("Parcour created: ", timeFont));
+    p.add(new Chunk(dateFormatter.format(visit.getVersion().getCreated()), timeFont2));
+    doc.add(p);
+
+    generateNewLines(doc, 1);
+
+    p = new Paragraph();
+    p.add(new Chunk("Begin: ", timeFont));
+    p.add(new Chunk(visit.getBeginTime().toLocaleString() + "\n", timeFont2));
+    p.add(new Chunk("End:   ", timeFont));
+    if (visit.getEndTime() != null) {
+      p.add(new Chunk(visit.getEndTime().toLocaleString(), timeFont2));
+    }
+
+    doc.add(p);
+
+    generateNewLines(doc, 2);
+
+    final PdfPTable table = new PdfPTable(visit.getUserVisit().size() + 1);
+    PdfPCell cell = new PdfPCell();
+    cell.setBorderWidthBottom(2);
+    cell.setBackgroundColor(evenBg);
+
+    table.addCell(cell);
+    for (final UserVisit uv : visit.getUserVisit()) {
+      cell = new PdfPCell(new Phrase(uv.getUser().getUserName(), tableFontBold));
+      cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+      cell.setBorderWidthBottom(2);
+      cell.setBackgroundColor(evenBg);
+      setCellPaddings(cell, PDF_COLUMN_PADDING);
+      table.addCell(cell);
+    }
+
+    cell = new PdfPCell(new Phrase("total", tableFontBold));
+    cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+    cell.setBackgroundColor(oddBg);
+    setCellPaddings(cell, PDF_COLUMN_PADDING);
+    table.addCell(cell);
+    for (final UserVisit uv : visit.getUserVisit()) {
+      cell = new PdfPCell(new Phrase(data.getTotalPoints().get(uv.getUser().getUserName()).toString(), tableFont));
+      cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+      setCellPaddings(cell, PDF_COLUMN_PADDING);
+      cell.setBackgroundColor(oddBg);
+      table.addCell(cell);
+    }
+
+    cell = new PdfPCell(new Phrase("avg", tableFontBold));
+    cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+    cell.setBorderWidthBottom(2);
+    cell.setBackgroundColor(evenBg);
+    setCellPaddings(cell, PDF_COLUMN_PADDING);
+    table.addCell(cell);
+    for (final UserVisit uv : visit.getUserVisit()) {
+      final Double value = data.getAvgPoints().get(uv.getUser().getUserName());
+      cell = new PdfPCell(new Phrase(value != null ? MessageFormat.format("{0,number,#.##}", value) : "-", tableFont));
+      cell.setBorderWidthBottom(2);
+      cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+      cell.setBackgroundColor(evenBg);
+      setCellPaddings(cell, PDF_COLUMN_PADDING);
+      table.addCell(cell);
+    }
+
+    int modCounter = 0;
+
+    final TreeSet<Integer> keySet = new TreeSet<Integer>(data.getScoringData().keySet());
+
+    for (final Integer key : keySet) {
+      final Map<String, Integer> entry = data.getScoringData().get(key);
+      cell = new PdfPCell(new Phrase(new Phrase(key.toString(), tableFontBold)));
+      cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+      cell.setBackgroundColor(modCounter % 2 == 0 ? oddBg : evenBg);
+      table.addCell(cell);
+      for (final UserVisit uv : visit.getUserVisit()) {
+        cell =
+            new PdfPCell(new Phrase(entry.get(uv.getUser().getUserName()) != null ? entry.get(
+                uv.getUser().getUserName()).toString() : "-", tableFont));
+        cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        cell.setBackgroundColor(modCounter % 2 == 0 ? oddBg : evenBg);
+        table.addCell(cell);
+      }
+      modCounter++;
+    }
+
+    doc.add(table);
+
+    doc.close();
+    fos.close();
+    return file;
+  }
+
+
+  private void setCellPaddings(final PdfPCell cell, final float cellPadding) {
+    cell.setPaddingBottom(cellPadding);
+    cell.setPaddingTop(cellPadding);
+  }
+
+
+  private void generateNewLines(final Document doc, final int lineCount) throws DocumentException {
+    for (int i = 0; i < lineCount; i++) {
+      doc.add(new Paragraph(" "));
+    }
+  }
+
 
   private int safeGet(final Map<String, Integer> map, final String key) {
     final Integer val = map.get(key);

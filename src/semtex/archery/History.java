@@ -2,13 +2,21 @@
 package semtex.archery;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
 
 import semtex.archery.entities.data.DatabaseHelper;
 import semtex.archery.entities.data.ReportGenerator;
@@ -19,6 +27,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.Html;
 import android.util.Log;
@@ -38,6 +47,8 @@ public class History extends OrmLiteBaseActivity<DatabaseHelper> {
 
   private static final int CTX_SHARE = 2;
 
+  private static final int CTX_SHARE_WEB = 3;
+
   private static final String TAG = History.class.getName();
 
   public Map<Visit, ParcourReportData> reportCache = new HashMap<Visit, ParcourReportData>();
@@ -55,6 +66,7 @@ public class History extends OrmLiteBaseActivity<DatabaseHelper> {
     if (v.getId() == R.id.lvVisitHistory) {
       menu.add(Menu.NONE, CTX_REMOVE_ITEM_ID, Menu.NONE, "Remove");
       menu.add(Menu.NONE, CTX_SHARE, Menu.NONE, "Share");
+      menu.add(Menu.NONE, CTX_SHARE_WEB, Menu.NONE, "Share with Web");
     }
   }
 
@@ -97,12 +109,12 @@ public class History extends OrmLiteBaseActivity<DatabaseHelper> {
           recipients.add(uv.getUser().getMail());
         }
       }
-      final File report = null;
-      // try {
-      // report = generator.generatePDFReportForVisit(visit);
-      // } catch(final Exception e) {
-      // e.printStackTrace();
-      // }
+      File report = null;
+      try {
+        report = generator.generatePDFReportForVisit(visit);
+      } catch(final Exception e) {
+        e.printStackTrace();
+      }
       Log.i(TAG, "Found " + recipients.size() + " recpients");
 
       final Intent sharingIntent = new Intent(Intent.ACTION_SEND);
@@ -112,10 +124,38 @@ public class History extends OrmLiteBaseActivity<DatabaseHelper> {
           + visit.getVersion().getParcour().getName() + " on " + dateFormatter.format(visit.getBeginTime()));
       sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT,
           Html.fromHtml(generator.generateHTMLReportForVisit(visit)));
-      // if (report != null) {
-      // sharingIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(report));
-      // }
+      if (report != null) {
+        sharingIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(report));
+      }
       startActivity(Intent.createChooser(sharingIntent, "Share using"));
+    } else if (item.getItemId() == CTX_SHARE_WEB) {
+      final List<String> generateJsonObjectsForVisit = generator.generateJsonObjectsForVisit(visit);
+      for (final String output : generateJsonObjectsForVisit) {
+        final HttpClient httpclient = new DefaultHttpClient();
+        final HttpPost httppost = new HttpPost("http://shice.it/c/upload.php");
+        final List<NameValuePair> pairs = new LinkedList<NameValuePair>();
+        final NameValuePair nvp = new BasicNameValuePair("a", output);
+        pairs.add(nvp);
+        try {
+          httppost.setEntity(new UrlEncodedFormEntity(pairs));
+          final HttpResponse response = httpclient.execute(httppost);
+
+          if (response.getStatusLine().getStatusCode() == 200) {
+            Toast.makeText(getApplicationContext(), "Upload successfull", Toast.LENGTH_LONG).show();
+          }
+
+        } catch(final UnsupportedEncodingException e) {
+          Log.e(TAG, "unsupp. encoding of: " + output, e);
+          Toast.makeText(getApplicationContext(), "Could not upload data", Toast.LENGTH_LONG).show();
+        } catch(final ClientProtocolException e) {
+          Log.e(TAG, "Client Protocol Exception", e);
+          Toast.makeText(getApplicationContext(), "Could not upload data", Toast.LENGTH_LONG).show();
+        } catch(final IOException e) {
+          Log.e(TAG, "IO Exception");
+          Toast.makeText(getApplicationContext(), "Could not upload data", Toast.LENGTH_LONG).show();
+        }
+
+      }
     }
     return true;
   }
