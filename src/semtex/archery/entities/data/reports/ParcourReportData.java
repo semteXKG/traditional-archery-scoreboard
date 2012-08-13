@@ -1,9 +1,7 @@
 
 package semtex.archery.entities.data.reports;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 
 public class ParcourReportData {
@@ -16,7 +14,7 @@ public class ParcourReportData {
 
   private Date endTime;
 
-  private final Map<Integer, Map<String, Integer>> scoringData = new HashMap<Integer, Map<String, Integer>>();
+  private final SortedMap<Integer, Map<String, Integer>> scoringData = new TreeMap<Integer, Map<String, Integer>>();
 
   private Map<String, Double> avgPoints = new HashMap<String, Double>();
 

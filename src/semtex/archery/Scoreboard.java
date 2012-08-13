@@ -2,8 +2,9 @@
 package semtex.archery;
 
 import java.text.MessageFormat;
-import java.util.*;
-import java.util.Map.Entry;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Map;
 
 import semtex.archery.entities.data.DatabaseHelper;
 import semtex.archery.entities.data.ReportGenerator;
@@ -21,20 +22,6 @@ import com.j256.ormlite.android.apptools.OrmLiteBaseActivity;
 
 
 public class Scoreboard extends OrmLiteBaseActivity<DatabaseHelper> {
-
-  private final class ScoringComparator implements Comparator<Entry<Integer, Map<String, Integer>>> {
-
-    public int compare(final Entry<Integer, Map<String, Integer>> lhs, final Entry<Integer, Map<String, Integer>> rhs) {
-      if (lhs == null) {
-        return -1;
-      }
-      if (rhs == null) {
-        return 1;
-      }
-
-      return lhs.getKey().compareTo(rhs.getKey());
-    }
-  }
 
   public static final int COLOR_1 = 0xFF696969;
 
@@ -88,11 +75,6 @@ public class Scoreboard extends OrmLiteBaseActivity<DatabaseHelper> {
     tl.addView(tr);
     final Map<Integer, Map<String, Integer>> scoringData = reportData.getScoringData();
 
-    final Set<Entry<Integer, Map<String, Integer>>> entrySet = scoringData.entrySet();
-    final TreeSet<Entry<Integer, Map<String, Integer>>> sortedSet =
-        new TreeSet<Map.Entry<Integer, Map<String, Integer>>>(new ScoringComparator());
-
-    sortedSet.addAll(entrySet);
     ArrayList<Double> values = new ArrayList<Double>();
     for (final UserVisit uv : v.getUserVisit()) {
       values.add(reportData.getAvgPoints().get(uv.getUser().getUserName()));
@@ -105,7 +87,7 @@ public class Scoreboard extends OrmLiteBaseActivity<DatabaseHelper> {
     }
     addLineToTable(tl, "total", values, true);
 
-    for (final Map.Entry<Integer, Map<String, Integer>> entry : sortedSet) {
+    for (final Map.Entry<Integer, Map<String, Integer>> entry : scoringData.entrySet()) {
       values = new ArrayList<Double>();
       for (final UserVisit uv : v.getUserVisit()) {
         // Sanitation checking - has the user really scores or might we run into a nullpointer along the way?
@@ -115,7 +97,7 @@ public class Scoreboard extends OrmLiteBaseActivity<DatabaseHelper> {
             values.add(entry.getValue().get(uv.getUser().getUserName()) * 1.0);
           } else {
             values.add(null);// if
-          }
+          } // if - score not null
         } // if
       } // for - each userVisit
       addLineToTable(tl, entry.getKey().toString(), values, entry.getKey() % 2 == 0);

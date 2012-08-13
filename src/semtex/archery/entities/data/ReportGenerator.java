@@ -220,19 +220,19 @@ public class ReportGenerator {
           + (it.hasNext() ? ", " : ""));
     }
 
-    final TreeSet<Integer> keySet = new TreeSet<Integer>(data.getScoringData().keySet());
-    for (final Integer key : keySet) {
-      final Map<String, Integer> entry = data.getScoringData().get(key);
-
+    for (final Integer key : data.getScoringData().keySet()) {
+      final Map<String, Integer> singleScoringData = data.getScoringData().get(key);
       builder.append("<br><b>" + String.format("%10s", key) + "</b> | ");
       it = visit.getUserVisit().iterator();
       while (it.hasNext()) {
         final UserVisit uv = it.next();
-        builder.append(String.format("%10s",
-            entry.get(uv.getUser().getUserName()) != null ? entry.get(uv.getUser().getUserName()) : "-")
+        builder.append(String.format(
+            "%10s",
+            singleScoringData.get(uv.getUser().getUserName()) != null ? singleScoringData.get(uv.getUser()
+                .getUserName()) : "-")
             + (it.hasNext() ? ", " : ""));
-      }
-    }
+      } // while
+    } // for
 
     return builder.toString();
   }
@@ -321,9 +321,7 @@ public class ReportGenerator {
 
     int modCounter = 0;
 
-    final TreeSet<Integer> keySet = new TreeSet<Integer>(data.getScoringData().keySet());
-
-    for (final Integer key : keySet) {
+    for (final Integer key : data.getScoringData().keySet()) {
       final Map<String, Integer> entry = data.getScoringData().get(key);
       cell = new PdfPCell(new Phrase(new Phrase(key.toString(), tableFontBold)));
       cell.setHorizontalAlignment(Element.ALIGN_CENTER);
@@ -336,16 +334,16 @@ public class ReportGenerator {
         cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
         cell.setBackgroundColor(modCounter % 2 == 0 ? oddBg : evenBg);
         table.addCell(cell);
-      }
+      } // for
       modCounter++;
-    }
+    } // for
 
     doc.add(table);
 
     doc.close();
     fos.close();
     return file;
-  }
+  } // generatePDFReportsForVisit
 
 
   private void setCellPaddings(final PdfPCell cell, final float cellPadding) {
