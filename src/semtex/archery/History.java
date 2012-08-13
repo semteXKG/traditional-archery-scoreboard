@@ -229,7 +229,7 @@ public class History extends OrmLiteBaseActivity<DatabaseHelper> {
       }
 
     };
-    task.execute(null);
+    task.execute((Void)null);
   } // refreshVisitList
 
   public class VisitHistoryAdapter extends ArrayAdapter<Visit> {

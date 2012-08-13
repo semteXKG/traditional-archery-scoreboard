@@ -171,21 +171,31 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
     // copy all the older targets
     for (final Target target : getHelper().getTargetDao().findTargetsByVersion(oldVersion)) {
       // copy all entries till the one before our current position
-      if (target.getTargetNumber() < currentTarget.getTargetNumber()) {
+      if (target.getTargetNumber() <= currentTarget.getTargetNumber()) {
         final Target newTarget = new Target(target.getTargetNumber(), newVersion);
-        newTarget.setComment(target.getComment());
-        newTarget.setLatitude(target.getLatitude());
-        newTarget.setLongitude(target.getLongitude());
-        newTarget.setPictureLocation(target.getPictureLocation());
+
+        // don't copy images, gps locations, ... for the "current" image, as it's the first one that changed
+        if (target.getTargetNumber() != currentTarget.getTargetNumber()) {
+          newTarget.setComment(target.getComment());
+          newTarget.setLatitude(target.getLatitude());
+          newTarget.setLongitude(target.getLongitude());
+          newTarget.setPictureLocation(target.getPictureLocation());
+        } // if
+
         getHelper().getTargetDao().create(newTarget);
 
         // re-map the targetHits
         for (final TargetHit oldTH : getHelper().getTargetHitDao().findTargetHitsByVisitAndTarget(currentVisit, target)) {
           oldTH.setTarget(newTarget);
           getHelper().getTargetHitDao().update(oldTH);
-        }
-      }
-    }
+        } // for
+      } else {
+        // we have to remove all old target hits from this target that won't be accessible anyway after the re-mapping
+        final List<TargetHit> oldTargetHits =
+            getHelper().getTargetHitDao().findTargetHitsByVisitAndTarget(currentVisit, target);
+        getHelper().getTargetHitDao().delete(oldTargetHits);
+      } // else
+    } // for
 
     currentVisit.setVersion(newVersion);
     getHelper().getVisitDao().update(currentVisit);
@@ -193,7 +203,7 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
     fetchSetupData();
     updateUIElements();
     Toast.makeText(getApplicationContext(), "Successfully changed to new version", Toast.LENGTH_LONG).show();
-  }
+  } // generateNewParcourVersion
 
 
   @Override
