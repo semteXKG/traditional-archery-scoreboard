@@ -166,17 +166,20 @@ containing a value of this type.
         public static final int usermanager=0x7f03000e;
     }
     public static final class string {
+        public static final int addEditUserDefaultText=0x7f040013;
         public static final int addUser=0x7f040006;
         public static final int app_name=0x7f040001;
         public static final int cancel=0x7f04000b;
         public static final int close=0x7f04000f;
         public static final int color=0x7f040009;
+        public static final int empty_or_valid=0x7f040015;
         public static final int hello=0x7f040000;
         public static final int history=0x7f040004;
         public static final int mail=0x7f040008;
         public static final int menu_create_new_version=0x7f040012;
         public static final int pick_color=0x7f04000a;
         public static final int reorder=0x7f04000e;
+        public static final int required=0x7f040014;
         public static final int save=0x7f04000c;
         public static final int searchUser=0x7f040005;
         public static final int start=0x7f040003;

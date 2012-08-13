@@ -20,5 +20,8 @@
     <string name="start_stop_edit_mode">enter / leave edit mode</string>
     <string name="take_picture">take picture</string>
     <string name="menu_create_new_version">Create new version</string>
+    <string name="addEditUserDefaultText"></string>
+    <string name="required">Required</string>
+    <string name="empty_or_valid">must be empty or valid!</string>
 
 </resources>

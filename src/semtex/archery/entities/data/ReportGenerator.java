@@ -74,6 +74,13 @@ public class ReportGenerator {
   }
 
 
+  /**
+   * generates basic statistical analysis of the parcour, featuring the name + date of the parcour, a list of all the
+   * targets and the users that shot them
+   * 
+   * @param visit
+   * @return aggregated DTO
+   */
   public ParcourReportData generateReportForVisit(final Visit visit) {
     Log.i(TAG, "Beginning calculation");
     final ParcourReportData reportData = new ParcourReportData();
@@ -123,8 +130,8 @@ public class ReportGenerator {
         if (totalPoints.get(userName) == null) {
           totalPoints.put(userName, 0);
         } // if
-      }
-    }
+      } // else
+    } // for
 
     final Map<String, Double> avgPoints = new HashMap<String, Double>();
 
@@ -144,7 +151,7 @@ public class ReportGenerator {
     reportData.setTotalPoints(totalPoints);
     Log.i(TAG, "Ending calculation");
     return reportData;
-  }
+  } // GenerateReportForVisit
 
 
   public List<String> generateJsonObjectsForVisit(final Visit visit) {
