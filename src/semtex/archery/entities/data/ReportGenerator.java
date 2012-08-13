@@ -115,15 +115,30 @@ public class ReportGenerator {
         targetHitMap.put(userName, points);
         totalNumbers.put(userName, safeGet(totalNumbers, userName) + 1);
         totalPoints.put(userName, safeGet(totalPoints, userName) + points);
+      } else {
+        // this sanitation block will be used when there is no result for one user.
+        if (totalNumbers.get(userName) == null) {
+          totalNumbers.put(userName, 0);
+        } // if
+        if (totalPoints.get(userName) == null) {
+          totalPoints.put(userName, 0);
+        } // if
       }
     }
 
     final Map<String, Double> avgPoints = new HashMap<String, Double>();
 
     for (final Map.Entry<String, Integer> totalNumberEntry : totalNumbers.entrySet()) {
-      final double avgCalcPoints = totalPoints.get(totalNumberEntry.getKey()) * 1.0 / totalNumberEntry.getValue();
+      double avgCalcPoints;
+
+      // avoid division by zero
+      if (totalNumberEntry.getValue() != 0) {
+        avgCalcPoints = totalPoints.get(totalNumberEntry.getKey()) * 1.0 / totalNumberEntry.getValue();
+      } else { // if
+        avgCalcPoints = 0;
+      } // else
       avgPoints.put(totalNumberEntry.getKey(), avgCalcPoints);
-    }
+    } // for
 
     reportData.setAvgPoints(avgPoints);
     reportData.setTotalPoints(totalPoints);

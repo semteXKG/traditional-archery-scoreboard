@@ -79,28 +79,37 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
       if (from == to) {
         Log.d(TAG, "no move registered!");
         return;
-      }
+      } // if - nothing to do
+
       Log.i(TAG, "moving from " + from + " to " + to);
       final UserVisit targetVisit = adapter.getItem(from);
+      // if we insert after the original position
       if (from < to) {
+        // set rank to new one
         targetVisit.setRank(to);
+        // move all other items after the source to the position of the source
         for (int i = from + 1; i <= to; i++) {
           final UserVisit moveItem = adapter.getItem(i);
           moveItem.setRank(moveItem.getRank() - 1);
           userVisitDao.update(moveItem);
-        }
+        } // for
+
+        // otherwise make space for the new element in terms of moving everything backward till you find the "space" at
+        // the new old source.
       } else if (from > to) {
         targetVisit.setRank(to);
+
+        // for
         for (int i = to; i < from; i++) {
           final UserVisit moveItem = adapter.getItem(i);
           moveItem.setRank(moveItem.getRank() + 1);
           userVisitDao.update(moveItem);
-        }
-      }
+        } // for
+      } // else
       userVisitDao.update(targetVisit);
       updateUIElements();
-    }
-  };
+    } // drop
+  }; // DropListener
 
 
   @Override
@@ -665,6 +674,7 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
       toggleButtons.remove(toggleButton);
       for (final ToggleButton visStateBtn : toggleButtons) {
         visStateBtn.setTypeface(null, Typeface.NORMAL);
+        visStateBtn.setChecked(false);
         visStateBtn.setVisibility(visibility);
       }
     }

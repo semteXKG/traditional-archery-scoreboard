@@ -108,10 +108,18 @@ public class Scoreboard extends OrmLiteBaseActivity<DatabaseHelper> {
     for (final Map.Entry<Integer, Map<String, Integer>> entry : sortedSet) {
       values = new ArrayList<Double>();
       for (final UserVisit uv : v.getUserVisit()) {
-        values.add(entry.getValue().get(uv.getUser().getUserName()) * 1.0);
-      }
+        // Sanitation checking - has the user really scores or might we run into a nullpointer along the way?
+        if (entry.getValue() != null) {
+          final Integer score = entry.getValue().get(uv.getUser().getUserName());
+          if (score != null) {
+            values.add(entry.getValue().get(uv.getUser().getUserName()) * 1.0);
+          } else {
+            values.add(null);// if
+          }
+        } // if
+      } // for - each userVisit
       addLineToTable(tl, entry.getKey().toString(), values, entry.getKey() % 2 == 0);
-    }
+    } // for - all entries
 
     final Button btnVisitClose = (Button)findViewById(R.id.btnVisitClose);
 
