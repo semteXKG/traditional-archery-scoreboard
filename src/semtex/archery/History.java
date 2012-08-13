@@ -28,6 +28,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Html;
 import android.util.Log;
@@ -56,6 +57,10 @@ public class History extends OrmLiteBaseActivity<DatabaseHelper> {
   private final DateFormat dateFormatter = DateFormat.getDateInstance();
 
   private ListView lv;
+
+  private TextView txtCurrentStatus;
+
+  private ProgressBar progressBarSearch;
 
   private ArrayAdapter<Visit> adapter;
 
@@ -168,7 +173,10 @@ public class History extends OrmLiteBaseActivity<DatabaseHelper> {
 
     generator = new ReportGenerator(History.this.getHelper());
 
+    txtCurrentStatus = (TextView)findViewById(R.id.txtCurrentStatus);
+    progressBarSearch = (ProgressBar)findViewById(R.id.progressBarSearch);
     lv = (ListView)findViewById(R.id.lvVisitHistory);
+
     lv.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
     lv.setItemsCanFocus(true);
     lv.setOnItemClickListener(new OnItemClickListener() {
@@ -180,19 +188,49 @@ public class History extends OrmLiteBaseActivity<DatabaseHelper> {
         i.putExtra("visit_id", v.getId());
 
         startActivity(i);
-      }
+      } // open parcour
     });
 
     registerForContextMenu(lv);
     refreshVisitList();
-  }
+  } // onCreate
 
 
   private void refreshVisitList() {
-    final List<Visit> visits = getHelper().getVisitDao().findAllVisits(false, 0L);
-    adapter = new VisitHistoryAdapter(this, R.layout.history_visit_row, visits);
-    lv.setAdapter(adapter);
-  }
+    final AsyncTask<Void, Void, List<Visit>> task = new AsyncTask<Void, Void, List<Visit>>() {
+
+      @Override
+      protected void onPreExecute() {
+        txtCurrentStatus.setVisibility(View.VISIBLE);
+        txtCurrentStatus.setText("Loading Results...");
+        progressBarSearch.setVisibility(View.VISIBLE);
+        lv.setVisibility(View.GONE);
+      }
+
+
+      @Override
+      protected List<Visit> doInBackground(final Void... params) {
+        return getHelper().getVisitDao().findAllVisits(false, 0L);
+      }
+
+
+      @Override
+      protected void onPostExecute(final List<Visit> result) {
+        if (result == null || result.size() == 0) {
+          txtCurrentStatus.setText("No results found!");
+          progressBarSearch.setVisibility(View.GONE);
+        } else {
+          txtCurrentStatus.setVisibility(View.GONE);
+          progressBarSearch.setVisibility(View.GONE);
+          lv.setVisibility(View.VISIBLE);
+          adapter = new VisitHistoryAdapter(History.this, R.layout.history_visit_row, result);
+          lv.setAdapter(adapter);
+        }
+      }
+
+    };
+    task.execute(null);
+  } // refreshVisitList
 
   public class VisitHistoryAdapter extends ArrayAdapter<Visit> {
 
@@ -219,13 +257,13 @@ public class History extends OrmLiteBaseActivity<DatabaseHelper> {
       if (v == null) {
         final LayoutInflater li = (LayoutInflater)getSystemService(LAYOUT_INFLATER_SERVICE);
         v = li.inflate(R.layout.history_visit_row, null);
-      }
+      } // if
 
       ParcourReportData reportData = reportCache.get(visit);
       if (reportData == null) {
         reportData = generator.generateReportForVisit(visit);
         reportCache.put(visit, reportData);
-      }
+      } // reportData
 
       final String beginTime = visit.getBeginTime() != null ? dateTimeFormatter.format(visit.getBeginTime()) : "";
       final String endTime = visit.getEndTime() != null ? dateTimeFormatter.format(visit.getEndTime()) : "";
@@ -261,10 +299,9 @@ public class History extends OrmLiteBaseActivity<DatabaseHelper> {
             + (entries.getValue() != null ? MessageFormat.format("{0,number,#.##}", entries.getValue()) : "-"));
 
         ll.addView(tv, lp);
-      }
+      } // for
 
       return v;
-    }
-  }
-
+    } // getView
+  } // VisitHistoryAdapter
 }
