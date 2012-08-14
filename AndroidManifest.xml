@@ -4,7 +4,7 @@
     android:versionCode="1"
     android:installLocation="auto"
     android:versionName="1.0" >
-    <uses-sdk android:minSdkVersion="8" />
+    <uses-sdk android:minSdkVersion="8" android:targetSdkVersion="15"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.INTERNET"/>
     <application
@@ -23,7 +23,17 @@
         <activity android:name="StartParcour"></activity>
         <activity android:name="Scoring"></activity>
         <activity android:name="Scoreboard"></activity>
-        <activity android:name="History"></activity>
+        <activity android:name="History" android:launchMode="singleTop" android:label="@string/history">
+          <intent-filter>
+            <action android:name="android.intent.action.SEARCH" />
+          </intent-filter>
+          <meta-data 
+            android:name="android.app.searchable"
+            android:resource="@xml/searchable" />
+          
+          <meta-data android:name="android.app.default_searchable"
+                   android:value="History" />
+        </activity>
     </application>
 
 </manifest>

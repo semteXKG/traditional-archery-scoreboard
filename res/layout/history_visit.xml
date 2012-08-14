@@ -19,7 +19,7 @@
         android:text=""
         android:textAppearance="?android:attr/textAppearanceLarge" />
     <ListView
-        android:id="@+id/lvVisitHistory"
+        android:id="@android:id/list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" >
 

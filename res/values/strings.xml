@@ -23,5 +23,6 @@
     <string name="addEditUserDefaultText"></string>
     <string name="required">Required</string>
     <string name="empty_or_valid">must be empty or valid!</string>
+    <string name="search_input_hint">Search Parcour- or username</string>
 
 </resources>

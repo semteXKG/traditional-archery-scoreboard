@@ -23,12 +23,15 @@ import semtex.archery.entities.data.ReportGenerator;
 import semtex.archery.entities.data.entities.UserVisit;
 import semtex.archery.entities.data.entities.Visit;
 import semtex.archery.entities.data.reports.ParcourReportData;
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.Html;
 import android.util.Log;
@@ -37,10 +40,10 @@ import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.*;
 import android.widget.AdapterView.OnItemClickListener;
 
-import com.j256.ormlite.android.apptools.OrmLiteBaseActivity;
+import com.j256.ormlite.android.apptools.OrmLiteBaseListActivity;
 
 
-public class History extends OrmLiteBaseActivity<DatabaseHelper> {
+public class History extends OrmLiteBaseListActivity<DatabaseHelper> {
 
   private ReportGenerator generator;
 
@@ -53,6 +56,8 @@ public class History extends OrmLiteBaseActivity<DatabaseHelper> {
   private static final String TAG = History.class.getName();
 
   public Map<Visit, ParcourReportData> reportCache = new HashMap<Visit, ParcourReportData>();
+
+  public List<Visit> visitCache = new LinkedList<Visit>();
 
   private final DateFormat dateFormatter = DateFormat.getDateInstance();
 
@@ -68,11 +73,11 @@ public class History extends OrmLiteBaseActivity<DatabaseHelper> {
   @Override
   public void onCreateContextMenu(final ContextMenu menu, final View v, final ContextMenuInfo menuInfo) {
     super.onCreateContextMenu(menu, v, menuInfo);
-    if (v.getId() == R.id.lvVisitHistory) {
-      menu.add(Menu.NONE, CTX_REMOVE_ITEM_ID, Menu.NONE, "Remove");
-      menu.add(Menu.NONE, CTX_SHARE, Menu.NONE, "Share");
-      menu.add(Menu.NONE, CTX_SHARE_WEB, Menu.NONE, "Share with Web");
-    }
+    // if (v.getId() == R.id.lvVisitHistory) {
+    menu.add(Menu.NONE, CTX_REMOVE_ITEM_ID, Menu.NONE, "Remove");
+    menu.add(Menu.NONE, CTX_SHARE, Menu.NONE, "Share");
+    menu.add(Menu.NONE, CTX_SHARE_WEB, Menu.NONE, "Share with Web");
+    // }
   }
 
 
@@ -170,14 +175,13 @@ public class History extends OrmLiteBaseActivity<DatabaseHelper> {
   protected void onCreate(final Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.history_visit);
-
     generator = new ReportGenerator(History.this.getHelper());
 
     txtCurrentStatus = (TextView)findViewById(R.id.txtCurrentStatus);
     progressBarSearch = (ProgressBar)findViewById(R.id.progressBarSearch);
-    lv = (ListView)findViewById(R.id.lvVisitHistory);
 
-    lv.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+    lv = getListView();
+    lv.setChoiceMode(AbsListView.CHOICE_MODE_SINGLE);
     lv.setItemsCanFocus(true);
     lv.setOnItemClickListener(new OnItemClickListener() {
 
@@ -190,10 +194,74 @@ public class History extends OrmLiteBaseActivity<DatabaseHelper> {
         startActivity(i);
       } // open parcour
     });
-
     registerForContextMenu(lv);
     refreshVisitList();
   } // onCreate
+
+
+  @Override
+  protected void onNewIntent(final Intent intent) {
+    if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
+      final String query = intent.getStringExtra(SearchManager.QUERY);
+      if (visitCache == null) {
+        visitCache = getHelper().getVisitDao().findAllVisits(false, 0L);
+      } // if
+      final List<Visit> filteredVisits = performFiltering(visitCache, query);
+      adapter = new VisitHistoryAdapter(History.this, R.layout.history_visit_row, filteredVisits);
+      setListAdapter(adapter);
+    } // if
+  } // onNewIntent
+
+
+  protected List<Visit> performFiltering(final Collection<Visit> originalCollection, final CharSequence constraint) {
+    final String comp = constraint.toString().toLowerCase();
+
+    final ArrayList<Visit> filtered = new ArrayList<Visit>();
+
+    for (final Visit v : originalCollection) {
+      if (v.getVersion().getParcour().getName().toLowerCase().contains(comp)) {
+        filtered.add(v);
+        continue;
+      } // for - parcour name
+
+      for (final UserVisit uv : v.getUserVisit()) {
+        if (uv.getUser().getUserName().toLowerCase().contains(comp)) {
+          filtered.add(v);
+          break;
+        }
+      } // for - each userVisit
+    } // for each visit
+    return filtered;
+  }
+
+
+  @SuppressLint("NewApi")
+  @Override
+  public boolean onCreateOptionsMenu(final Menu menu) {
+    final MenuInflater inflater = getMenuInflater();
+    inflater.inflate(R.menu.options_menu, menu);
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+      final SearchManager searchManager = (SearchManager)getSystemService(Context.SEARCH_SERVICE);
+      final SearchView searchView = (SearchView)menu.findItem(R.id.search).getActionView();
+      searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+      searchView.setIconifiedByDefault(false);
+    }
+
+    return true;
+  }
+
+
+  @Override
+  public boolean onOptionsItemSelected(final MenuItem item) {
+    switch (item.getItemId()) {
+      case R.id.search:
+        onSearchRequested();
+        return true;
+      default:
+        return false;
+    }
+  }
 
 
   private void refreshVisitList() {
@@ -217,9 +285,11 @@ public class History extends OrmLiteBaseActivity<DatabaseHelper> {
       @Override
       protected void onPostExecute(final List<Visit> result) {
         if (result == null || result.size() == 0) {
+          visitCache = new LinkedList<Visit>();
           txtCurrentStatus.setText("No results found!");
           progressBarSearch.setVisibility(View.GONE);
         } else {
+          visitCache = result;
           txtCurrentStatus.setVisibility(View.GONE);
           progressBarSearch.setVisibility(View.GONE);
           lv.setVisibility(View.VISIBLE);
@@ -242,9 +312,12 @@ public class History extends OrmLiteBaseActivity<DatabaseHelper> {
 
     private final DateFormat dateTimeFormatter = new SimpleDateFormat();
 
+    final List<Visit> objects;
+
 
     public VisitHistoryAdapter(final Context context, final int textViewResourceId, final List<Visit> objects) {
       super(context, textViewResourceId, objects);
+      this.objects = objects;
     }
 
 
@@ -303,5 +376,6 @@ public class History extends OrmLiteBaseActivity<DatabaseHelper> {
 
       return v;
     } // getView
+
   } // VisitHistoryAdapter
 }
