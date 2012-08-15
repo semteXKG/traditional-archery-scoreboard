@@ -147,33 +147,48 @@ public class History extends OrmLiteBaseListActivity<DatabaseHelper> {
       } // if
       startActivity(Intent.createChooser(sharingIntent, "Share using"));
     } else if (item.getItemId() == CTX_SHARE_WEB) { // else if
-      final List<String> generateJsonObjectsForVisit = generator.generateJsonObjectsForVisit(visit);
-      for (final String output : generateJsonObjectsForVisit) {
-        final HttpClient httpclient = new DefaultHttpClient();
-        final HttpPost httppost = new HttpPost("http://shice.it/c/upload.php");
-        final List<NameValuePair> pairs = new LinkedList<NameValuePair>();
-        final NameValuePair nvp = new BasicNameValuePair("a", output);
-        pairs.add(nvp);
-        try {
-          httppost.setEntity(new UrlEncodedFormEntity(pairs));
-          final HttpResponse response = httpclient.execute(httppost);
+      new Thread() {
 
-          if (response.getStatusLine().getStatusCode() == 200) {
-            Toast.makeText(getApplicationContext(), "Upload successfull", Toast.LENGTH_LONG).show();
-          } // if
+        @Override
+        public void run() {
+          final List<String> generateJsonObjectsForVisit = generator.generateJsonObjectsForVisit(visit);
+          for (final String output : generateJsonObjectsForVisit) {
+            final HttpClient httpclient = new DefaultHttpClient();
+            final HttpPost httppost = new HttpPost("http://shice.it/c/upload.php");
+            final List<NameValuePair> pairs = new LinkedList<NameValuePair>();
+            final NameValuePair nvp = new BasicNameValuePair("a", output);
+            pairs.add(nvp);
+            try {
+              httppost.setEntity(new UrlEncodedFormEntity(pairs));
+              final HttpResponse response = httpclient.execute(httppost);
 
-        } catch(final UnsupportedEncodingException e) {
-          Log.e(TAG, "unsupp. encoding of: " + output, e);
-          Toast.makeText(getApplicationContext(), "Could not upload data", Toast.LENGTH_LONG).show();
-        } catch(final ClientProtocolException e) {
-          Log.e(TAG, "Client Protocol Exception", e);
-          Toast.makeText(getApplicationContext(), "Could not upload data", Toast.LENGTH_LONG).show();
-        } catch(final IOException e) {
-          Log.e(TAG, "IO Exception");
-          Toast.makeText(getApplicationContext(), "Could not upload data", Toast.LENGTH_LONG).show();
-        } // try / catch
+              if (response.getStatusLine().getStatusCode() == 200) {
+                makeToast("Upload successfull");
+              } // if
 
-      } // for
+            } catch(final UnsupportedEncodingException e) {
+              Log.e(TAG, "unsupp. encoding of: " + output, e);
+              makeToast("Could not upload Data");
+            } catch(final ClientProtocolException e) {
+              Log.e(TAG, "Client Protocol Exception", e);
+              makeToast("Could not upload Data");
+            } catch(final IOException e) {
+              Log.e(TAG, "IO Exception");
+              makeToast("Could not upload Data");
+            } // try / catch
+          } // for
+        }
+
+
+        private void makeToast(final String string) {
+          runOnUiThread(new Runnable() {
+
+            public void run() {
+              Toast.makeText(getApplicationContext(), string, Toast.LENGTH_LONG).show();
+            } // run
+          }); // runOnUiThread
+        } // makeToast
+      }.start();
     } else if (item.getItemId() == CTX_REOPEN) { // else if
       if (getHelper().getVisitDao().findLastOpenVisit() != null) {
         Toast.makeText(getApplicationContext(), "close the current open visit first!", Toast.LENGTH_LONG).show();
