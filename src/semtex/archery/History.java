@@ -47,11 +47,15 @@ public class History extends OrmLiteBaseListActivity<DatabaseHelper> {
 
   private ReportGenerator generator;
 
+  private static final int REQ_CODE_RET_FROM_SCORING = 0;
+
   private static final int CTX_REMOVE_ITEM_ID = 1;
 
   private static final int CTX_SHARE = 2;
 
   private static final int CTX_SHARE_WEB = 3;
+
+  private static final int CTX_REOPEN = 4;
 
   private static final String TAG = History.class.getName();
 
@@ -74,6 +78,7 @@ public class History extends OrmLiteBaseListActivity<DatabaseHelper> {
   public void onCreateContextMenu(final ContextMenu menu, final View v, final ContextMenuInfo menuInfo) {
     super.onCreateContextMenu(menu, v, menuInfo);
     // if (v.getId() == R.id.lvVisitHistory) {
+    menu.add(Menu.NONE, CTX_REOPEN, Menu.NONE, "Reopen");
     menu.add(Menu.NONE, CTX_REMOVE_ITEM_ID, Menu.NONE, "Remove");
     menu.add(Menu.NONE, CTX_SHARE, Menu.NONE, "Share");
     menu.add(Menu.NONE, CTX_SHARE_WEB, Menu.NONE, "Share with Web");
@@ -101,14 +106,14 @@ public class History extends OrmLiteBaseListActivity<DatabaseHelper> {
           getHelper().getVisitDao().delete(visit);
           refreshVisitList();
           Toast.makeText(getApplicationContext(), "Disposed " + visit.getId(), Toast.LENGTH_SHORT).show();
-        }
-      });
+        } // onClick
+      }); // setPositiveButton
 
       alertDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
 
         public void onClick(final DialogInterface dialog, final int which) {
-        }
-      });
+        } // onClick
+      }); // setNegativeButton
 
       alertDialog.show();
 
@@ -117,14 +122,16 @@ public class History extends OrmLiteBaseListActivity<DatabaseHelper> {
       for (final UserVisit uv : visit.getUserVisit()) {
         if (uv.getUser().getMail() != null && !"".equals(uv.getUser().getMail())) {
           recipients.add(uv.getUser().getMail());
-        }
-      }
+        } // if
+      } // for
+
       File report = null;
       try {
         report = generator.generatePDFReportForVisit(visit);
       } catch(final Exception e) {
         e.printStackTrace();
-      }
+      } // try / catch
+
       Log.i(TAG, "Found " + recipients.size() + " recpients");
 
       final Intent sharingIntent = new Intent(Intent.ACTION_SEND);
@@ -136,9 +143,9 @@ public class History extends OrmLiteBaseListActivity<DatabaseHelper> {
           Html.fromHtml(generator.generateHTMLReportForVisit(visit)));
       if (report != null) {
         sharingIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(report));
-      }
+      } // if
       startActivity(Intent.createChooser(sharingIntent, "Share using"));
-    } else if (item.getItemId() == CTX_SHARE_WEB) {
+    } else if (item.getItemId() == CTX_SHARE_WEB) { // else if
       final List<String> generateJsonObjectsForVisit = generator.generateJsonObjectsForVisit(visit);
       for (final String output : generateJsonObjectsForVisit) {
         final HttpClient httpclient = new DefaultHttpClient();
@@ -152,7 +159,7 @@ public class History extends OrmLiteBaseListActivity<DatabaseHelper> {
 
           if (response.getStatusLine().getStatusCode() == 200) {
             Toast.makeText(getApplicationContext(), "Upload successfull", Toast.LENGTH_LONG).show();
-          }
+          } // if
 
         } catch(final UnsupportedEncodingException e) {
           Log.e(TAG, "unsupp. encoding of: " + output, e);
@@ -163,12 +170,29 @@ public class History extends OrmLiteBaseListActivity<DatabaseHelper> {
         } catch(final IOException e) {
           Log.e(TAG, "IO Exception");
           Toast.makeText(getApplicationContext(), "Could not upload data", Toast.LENGTH_LONG).show();
-        }
+        } // try / catch
 
-      }
-    }
+      } // for
+    } else if (item.getItemId() == CTX_REOPEN) { // else if
+      if (getHelper().getVisitDao().findLastOpenVisit() != null) {
+        Toast.makeText(getApplicationContext(), "close the current open visit first!", Toast.LENGTH_LONG).show();
+      } else {
+        visit.setEndTime(null);
+        getHelper().getVisitDao().update(visit);
+        final Intent intent = new Intent(getBaseContext(), StartParcour.class);
+        startActivityForResult(intent, REQ_CODE_RET_FROM_SCORING);
+      } // else
+    } // else if
     return true;
   }
+
+
+  @Override
+  protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
+    if (requestCode == REQ_CODE_RET_FROM_SCORING) {
+      refreshVisitList();
+    } // if
+  } // onActivityResult
 
 
   @Override
@@ -193,7 +217,7 @@ public class History extends OrmLiteBaseListActivity<DatabaseHelper> {
 
         startActivity(i);
       } // open parcour
-    });
+    }); // setOnItemClickListener
     registerForContextMenu(lv);
     refreshVisitList();
   } // onCreate
@@ -228,11 +252,11 @@ public class History extends OrmLiteBaseListActivity<DatabaseHelper> {
         if (uv.getUser().getUserName().toLowerCase().contains(comp)) {
           filtered.add(v);
           break;
-        }
+        } // if
       } // for - each userVisit
     } // for each visit
     return filtered;
-  }
+  } // performFiltering
 
 
   @SuppressLint("NewApi")
@@ -240,16 +264,14 @@ public class History extends OrmLiteBaseListActivity<DatabaseHelper> {
   public boolean onCreateOptionsMenu(final Menu menu) {
     final MenuInflater inflater = getMenuInflater();
     inflater.inflate(R.menu.options_menu, menu);
-
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
       final SearchManager searchManager = (SearchManager)getSystemService(Context.SEARCH_SERVICE);
       final SearchView searchView = (SearchView)menu.findItem(R.id.search).getActionView();
       searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
       searchView.setIconifiedByDefault(false);
-    }
-
+    } // if
     return true;
-  }
+  } // onCreateOptionsMenu
 
 
   @Override
