@@ -21,5 +21,13 @@
           android:title="@string/search_input_hint"
           android:icon="@drawable/ic_menu_search" 
           android:showAsAction="collapseActionView|ifRoom"
-          android:actionViewClass="android.widget.SearchView" />          
+          android:actionViewClass="android.widget.SearchView" />     
+    
+    <item android:id="@+id/importdb"
+          android:title="@string/import_db"
+          android:showAsAction="collapseActionView|ifRoom" />
+    
+    <item android:id="@+id/exportdb"
+          android:title="@string/export_db"
+          android:showAsAction="collapseActionView|ifRoom" />
 </menu> 

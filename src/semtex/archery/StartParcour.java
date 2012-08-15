@@ -88,7 +88,7 @@ public class StartParcour extends OrmLiteBaseActivity<DatabaseHelper> {
     });
 
     lv.setItemsCanFocus(false);
-    lv.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+    lv.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
 
     final Button btnStart = (Button)findViewById(R.id.btnStart);
     btnStart.setOnClickListener(new View.OnClickListener() {
@@ -133,7 +133,7 @@ public class StartParcour extends OrmLiteBaseActivity<DatabaseHelper> {
       });
       ad.setCancelable(false);
       ad.show();
-    }
+    } // if visit != null
 
   }
 

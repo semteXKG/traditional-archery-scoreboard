@@ -23,6 +23,7 @@ import semtex.archery.entities.data.ReportGenerator;
 import semtex.archery.entities.data.entities.UserVisit;
 import semtex.archery.entities.data.entities.Visit;
 import semtex.archery.entities.data.reports.ParcourReportData;
+import semtex.archery.util.BackupRestoreHelper;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.SearchManager;
@@ -280,10 +281,34 @@ public class History extends OrmLiteBaseListActivity<DatabaseHelper> {
       case R.id.search:
         onSearchRequested();
         return true;
+      case R.id.importdb:
+        importDBfromSD();
+        return true;
+      case R.id.exportdb:
+        exportDbToSDCard();
+        return true;
       default:
         return false;
     }
   }
+
+
+  private void exportDbToSDCard() {
+    if (!BackupRestoreHelper.backupDB()) {
+      Toast.makeText(getApplicationContext(), "Backup to SD Card failed!", Toast.LENGTH_LONG).show();
+    } else { // if
+      Toast.makeText(getApplicationContext(), "Backup successfull", Toast.LENGTH_LONG).show();
+    }
+  } // exportDbToSDScard
+
+
+  private void importDBfromSD() {
+    if (!BackupRestoreHelper.restoreDB()) {
+      Toast.makeText(getApplicationContext(), "Restored to internal storage failed!", Toast.LENGTH_LONG).show();
+    } else { // if
+      Toast.makeText(getApplicationContext(), "Restore successfull", Toast.LENGTH_LONG).show();
+    }
+  } // importDBFromSDCard
 
 
   private void refreshVisitList() {

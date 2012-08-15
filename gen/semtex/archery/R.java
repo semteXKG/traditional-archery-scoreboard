@@ -112,8 +112,10 @@ containing a value of this type.
         public static final int button1=0x7f070039;
         public static final int ckbUserSelected=0x7f070037;
         public static final int dummyview_col=0x7f070034;
+        public static final int exportdb=0x7f07003d;
         public static final int fling=0x7f070001;
         public static final int historyVisitLinearLayout=0x7f070007;
+        public static final int importdb=0x7f07003c;
         public static final int lblParcourName=0x7f070008;
         public static final int lblParcourRevisionDate=0x7f070011;
         public static final int lblRevision=0x7f07000a;
@@ -179,8 +181,10 @@ containing a value of this type.
         public static final int close=0x7f05000f;
         public static final int color=0x7f050009;
         public static final int empty_or_valid=0x7f050015;
+        public static final int export_db=0x7f050018;
         public static final int hello=0x7f050000;
         public static final int history=0x7f050004;
+        public static final int import_db=0x7f050017;
         public static final int mail=0x7f050008;
         public static final int menu_create_new_version=0x7f050012;
         public static final int pick_color=0x7f05000a;

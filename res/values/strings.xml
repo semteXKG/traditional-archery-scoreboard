@@ -24,5 +24,6 @@
     <string name="required">Required</string>
     <string name="empty_or_valid">must be empty or valid!</string>
     <string name="search_input_hint">Search Parcour- or username</string>
-
+    <string name="import_db">Import Database from SD</string>
+    <string name="export_db">Export Database to SD</string>
 </resources>
