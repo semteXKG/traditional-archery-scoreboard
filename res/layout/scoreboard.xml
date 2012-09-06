@@ -41,7 +41,8 @@
     <Button
         android:id="@+id/btnVisitClose"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="50dip"
+        android:background="@drawable/button_background"
         android:text="@string/close" />
-
+        
 </LinearLayout>

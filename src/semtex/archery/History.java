@@ -1,40 +1,29 @@
 
 package semtex.archery;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
-
+import semtex.archery.business.SharingDispatcher;
+import semtex.archery.business.interfaces.CallbackAdapter;
 import semtex.archery.entities.data.DatabaseHelper;
 import semtex.archery.entities.data.ReportGenerator;
 import semtex.archery.entities.data.entities.UserVisit;
 import semtex.archery.entities.data.entities.Visit;
 import semtex.archery.entities.data.reports.ParcourReportData;
 import semtex.archery.util.BackupRestoreHelper;
+import semtex.archery.util.ProcessUtils;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.text.Html;
 import android.util.Log;
 import android.view.*;
 import android.view.ContextMenu.ContextMenuInfo;
@@ -45,8 +34,6 @@ import com.j256.ormlite.android.apptools.OrmLiteBaseListActivity;
 
 
 public class History extends OrmLiteBaseListActivity<DatabaseHelper> {
-
-  private ReportGenerator generator;
 
   private static final int REQ_CODE_RET_FROM_SCORING = 0;
 
@@ -74,6 +61,10 @@ public class History extends OrmLiteBaseListActivity<DatabaseHelper> {
 
   private ArrayAdapter<Visit> adapter;
 
+  private ReportGenerator generator;
+
+  private SharingDispatcher dispatcher;
+
 
   @Override
   public void onCreateContextMenu(final ContextMenu menu, final View v, final ContextMenuInfo menuInfo) {
@@ -91,6 +82,7 @@ public class History extends OrmLiteBaseListActivity<DatabaseHelper> {
   public boolean onContextItemSelected(final MenuItem item) {
     final AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
     final Visit visit = adapter.getItem(info.position);
+
     if (item.getItemId() == CTX_REMOVE_ITEM_ID) {
 
       final AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
@@ -119,76 +111,25 @@ public class History extends OrmLiteBaseListActivity<DatabaseHelper> {
       alertDialog.show();
 
     } else if (item.getItemId() == CTX_SHARE) {
-      final ArrayList<String> recipients = new ArrayList<String>();
-      for (final UserVisit uv : visit.getUserVisit()) {
-        if (uv.getUser().getMail() != null && !"".equals(uv.getUser().getMail())) {
-          recipients.add(uv.getUser().getMail());
-        } // if
-      } // for
-
-      File report = null;
-      try {
-        report = generator.generatePDFReportForVisit(visit);
-      } catch(final Exception e) {
-        e.printStackTrace();
-      } // try / catch
-
-      Log.i(TAG, "Found " + recipients.size() + " recpients");
-
-      final Intent sharingIntent = new Intent(Intent.ACTION_SEND);
-      sharingIntent.setType("text/html");
-      sharingIntent.putExtra(android.content.Intent.EXTRA_EMAIL, recipients.toArray(new String[recipients.size()]));
-      sharingIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "Results from "
-          + visit.getVersion().getParcour().getName() + " on " + dateFormatter.format(visit.getBeginTime()));
-      sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT,
-          Html.fromHtml(generator.generateHTMLReportForVisit(visit)));
-      if (report != null) {
-        sharingIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(report));
-      } // if
+      dispatcher = new SharingDispatcher(getHelper(), visit);
+      final Intent sharingIntent = dispatcher.shareMail();
       startActivity(Intent.createChooser(sharingIntent, "Share using"));
     } else if (item.getItemId() == CTX_SHARE_WEB) { // else if
-      new Thread() {
+      dispatcher = new SharingDispatcher(getHelper(), visit);
+      dispatcher.shareServer(new CallbackAdapter<Void>() {
 
         @Override
-        public void run() {
-          final List<String> generateJsonObjectsForVisit = generator.generateJsonObjectsForVisit(visit);
-          for (final String output : generateJsonObjectsForVisit) {
-            final HttpClient httpclient = new DefaultHttpClient();
-            final HttpPost httppost = new HttpPost("http://shice.it/c/upload.php");
-            final List<NameValuePair> pairs = new LinkedList<NameValuePair>();
-            final NameValuePair nvp = new BasicNameValuePair("a", output);
-            pairs.add(nvp);
-            try {
-              httppost.setEntity(new UrlEncodedFormEntity(pairs));
-              final HttpResponse response = httpclient.execute(httppost);
-
-              if (response.getStatusLine().getStatusCode() == 200) {
-                makeToast("Upload successfull");
-              } // if
-
-            } catch(final UnsupportedEncodingException e) {
-              Log.e(TAG, "unsupp. encoding of: " + output, e);
-              makeToast("Could not upload Data");
-            } catch(final ClientProtocolException e) {
-              Log.e(TAG, "Client Protocol Exception", e);
-              makeToast("Could not upload Data");
-            } catch(final IOException e) {
-              Log.e(TAG, "IO Exception");
-              makeToast("Could not upload Data");
-            } // try / catch
-          } // for
+        public void onSuccess(final Void data) {
+          Toast.makeText(getApplicationContext(), "Data uploaded successfully!", Toast.LENGTH_LONG).show();
         }
 
 
-        private void makeToast(final String string) {
-          runOnUiThread(new Runnable() {
-
-            public void run() {
-              Toast.makeText(getApplicationContext(), string, Toast.LENGTH_LONG).show();
-            } // run
-          }); // runOnUiThread
-        } // makeToast
-      }.start();
+        @Override
+        public void onFailure(final Throwable tr) {
+          Toast.makeText(getApplicationContext(), "Could not upload data to server!", Toast.LENGTH_LONG).show();
+          Log.e(TAG, "Could not upload to server!", tr);
+        }
+      });
     } else if (item.getItemId() == CTX_REOPEN) { // else if
       if (getHelper().getVisitDao().findLastOpenVisit() != null) {
         Toast.makeText(getApplicationContext(), "close the current open visit first!", Toast.LENGTH_LONG).show();
@@ -321,7 +262,9 @@ public class History extends OrmLiteBaseListActivity<DatabaseHelper> {
     if (!BackupRestoreHelper.restoreDB()) {
       Toast.makeText(getApplicationContext(), "Restored to internal storage failed!", Toast.LENGTH_LONG).show();
     } else { // if
-      Toast.makeText(getApplicationContext(), "Restore successfull", Toast.LENGTH_LONG).show();
+      Toast.makeText(getApplicationContext(), "Restore successfull, application will restart instantly",
+          Toast.LENGTH_LONG).show();
+      ProcessUtils.getInstance().killTasWithTimeout(3, getApplicationContext());
     }
   } // importDBFromSDCard
 

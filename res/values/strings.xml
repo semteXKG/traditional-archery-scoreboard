@@ -26,4 +26,10 @@
     <string name="search_input_hint">Search Parcour- or username</string>
     <string name="import_db">Import Database from SD</string>
     <string name="export_db">Export Database to SD</string>
+    <string name="share_mail">Mail</string>
+    <string name="share_title">Share this visit!</string>
+    <string name="share_server">TAS Server</string>
+    <string name="share_quit">Return</string>
+    <string name="share_description">You can always share it later in the \"History\" menu.</string>
+    <string name="parcour_name">parcour name</string>
 </resources>

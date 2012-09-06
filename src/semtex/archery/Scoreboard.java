@@ -11,6 +11,7 @@ import semtex.archery.entities.data.ReportGenerator;
 import semtex.archery.entities.data.entities.UserVisit;
 import semtex.archery.entities.data.entities.Visit;
 import semtex.archery.entities.data.reports.ParcourReportData;
+import semtex.archery.util.ArcheryBackupManager;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -118,12 +119,19 @@ public class Scoreboard extends OrmLiteBaseActivity<DatabaseHelper> {
 
         Toast.makeText(view.getContext(), "Visit successfully ended!", Toast.LENGTH_SHORT).show();
 
+        // triggering new backup on google services
+        final ArcheryBackupManager bm = new ArcheryBackupManager(Scoreboard.this);
+        bm.dataChanged();
+
+        final Intent intent = new Intent(getApplicationContext(), Sharing.class);
+        intent.putExtra("visit_id", v.getId());
+        startActivity(intent);
+
         setResult(RESULT_OK);
         finish();
-      }
+      } // onClick
     });
-
-  }
+  } // onCreate
 
 
   private void addLineToTable(final TableLayout tl, final String key, final ArrayList<Double> values,
