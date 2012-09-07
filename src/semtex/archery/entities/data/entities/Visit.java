@@ -3,6 +3,7 @@ package semtex.archery.entities.data.entities;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.UUID;
 
 import semtex.archery.entities.data.dao.VisitDao;
 
@@ -20,7 +21,7 @@ public class Visit implements Serializable {
   public static final String BEGIN_TIME = "begin_time";
 
   @DatabaseField(generatedId = true)
-  private Long id;
+  private UUID id = UUID.randomUUID();
 
   @DatabaseField(columnName = BEGIN_TIME)
   private Date beginTime;
@@ -46,12 +47,12 @@ public class Visit implements Serializable {
   }
 
 
-  public Long getId() {
+  public UUID getId() {
     return id;
   }
 
 
-  public void setId(final Long id) {
+  public void setId(final UUID id) {
     this.id = id;
   }
 

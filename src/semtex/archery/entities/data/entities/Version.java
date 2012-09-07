@@ -3,6 +3,7 @@ package semtex.archery.entities.data.entities;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.UUID;
 
 import semtex.archery.entities.data.dao.VersionDao;
 
@@ -22,7 +23,7 @@ public class Version implements Serializable {
   public static final String CREATED_NAME = "created_at";
 
   @DatabaseField(generatedId = true)
-  private Long id;
+  private UUID id = UUID.randomUUID();
 
   @DatabaseField(canBeNull = false, foreign = true, columnName = PARCOUR_NAME)
   private Parcour parcour;
@@ -46,12 +47,12 @@ public class Version implements Serializable {
   }
 
 
-  public Long getId() {
+  public UUID getId() {
     return id;
   }
 
 
-  public void setId(final Long id) {
+  public void setId(final UUID id) {
     this.id = id;
   }
 

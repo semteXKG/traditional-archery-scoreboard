@@ -3,6 +3,7 @@ package semtex.archery.entities.data.entities;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.UUID;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
@@ -16,7 +17,7 @@ import com.j256.ormlite.table.DatabaseTable;
 public class Parcour implements Serializable {
 
   @DatabaseField(generatedId = true)
-  private Long id;
+  private UUID id = UUID.randomUUID();
 
   @DatabaseField(unique = true)
   private String name;
@@ -39,12 +40,12 @@ public class Parcour implements Serializable {
   }
 
 
-  public Long getId() {
+  public UUID getId() {
     return id;
   }
 
 
-  public void setId(final Long id) {
+  public void setId(final UUID id) {
     this.id = id;
   }
 

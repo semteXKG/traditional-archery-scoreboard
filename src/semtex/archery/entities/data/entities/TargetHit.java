@@ -2,6 +2,7 @@
 package semtex.archery.entities.data.entities;
 
 import java.io.Serializable;
+import java.util.UUID;
 
 import semtex.archery.entities.data.dao.TargetHitDao;
 
@@ -17,7 +18,7 @@ public class TargetHit implements Serializable {
   public static final String USER_VISIT = "user";
 
   @DatabaseField(generatedId = true)
-  private Long id;
+  private UUID id = UUID.randomUUID();
 
   @DatabaseField
   private Integer points;
@@ -51,12 +52,12 @@ public class TargetHit implements Serializable {
   }
 
 
-  public Long getId() {
+  public UUID getId() {
     return id;
   }
 
 
-  public void setId(final Long id) {
+  public void setId(final UUID id) {
     this.id = id;
   }
 

@@ -2,6 +2,7 @@
 package semtex.archery.entities.data.dao;
 
 import java.sql.SQLException;
+import java.util.UUID;
 
 import semtex.archery.entities.data.entities.Parcour;
 import semtex.archery.entities.data.entities.Version;
@@ -12,7 +13,7 @@ import com.j256.ormlite.stmt.Where;
 import com.j256.ormlite.support.ConnectionSource;
 
 
-public class VersionDao extends BaseDaoImpl<Version, Long> implements IVersionDao {
+public class VersionDao extends BaseDaoImpl<Version, UUID> implements IVersionDao {
 
   public VersionDao(final ConnectionSource connectionSource) throws SQLException {
     super(connectionSource, Version.class);
@@ -20,8 +21,8 @@ public class VersionDao extends BaseDaoImpl<Version, Long> implements IVersionDa
 
 
   public Version findLatestVersion(final Parcour parcour) throws SQLException {
-    final QueryBuilder<Version, Long> queryBuilder = queryBuilder();
-    final Where<Version, Long> where = queryBuilder.where();
+    final QueryBuilder<Version, UUID> queryBuilder = queryBuilder();
+    final Where<Version, UUID> where = queryBuilder.where();
     where.eq(Version.PARCOUR_NAME, parcour);
     queryBuilder.setWhere(where);
     queryBuilder.orderBy(Version.CREATED_NAME, false);

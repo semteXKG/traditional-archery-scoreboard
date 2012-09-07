@@ -105,8 +105,8 @@ public class ReportGenerator {
                 + "LEFT JOIN target ON target.version= version.id "
                 + "LEFT JOIN target_hit ON target_hit.target = target.id "
                 + "LEFT JOIN user_visit uv ON target_hit.user = uv.id " + "LEFT JOIN user u ON uv.user_id = u.id "
-                + "WHERE visit.id=" + visit.getId() + " AND uv.visit_id=" + visit.getId()
-                + " ORDER BY target.target_number");
+                + "WHERE visit.id=\"" + visit.getId() + "\" AND uv.visit_id=\"" + visit.getId()
+                + "\" ORDER BY target.target_number");
     final Map<Integer, Map<String, Integer>> scoringData = reportData.getScoringData();
 
     for (final String[] objects : queryRaw) {
@@ -193,7 +193,7 @@ public class ReportGenerator {
     final StringBuilder builder = new StringBuilder();
     builder.append("<h1>" + visit.getVersion().getParcour().getName() + " (Version: "
         + dateFormatter.format(visit.getVersion().getCreated())
-        + (visit.getVersion().getName() != null ? " - " + visit.getVersion().getName() : "") + "</h2><br>");
+        + (visit.getVersion().getName() != null ? " - " + visit.getVersion().getName() : "") + ")</h2><br>");
 
     builder.append("<h4>" + visit.getBeginTime() + " - " + visit.getEndTime() + "</h4><br>");
     builder.append("<b>" + String.format("%10s", "Archers:") + "</b>");
@@ -203,7 +203,7 @@ public class ReportGenerator {
       builder.append(String.format("%10s", uv.getUser().getUserName()) + (it.hasNext() ? ", " : ""));
     }
 
-    builder.append("<br><b>" + String.format("%10s", "total") + "</b>");
+    builder.append("<br><b>" + String.format("%10s", "Total:") + "</b>");
     it = visit.getUserVisit().iterator();
     while (it.hasNext()) {
       final UserVisit uv = it.next();
@@ -211,7 +211,7 @@ public class ReportGenerator {
           + (it.hasNext() ? ", " : ""));
     }
 
-    builder.append("<br><b>" + String.format("%10s", "average") + "</b>");
+    builder.append("<br><b>" + String.format("%10s", "Average:") + "</b>");
     it = visit.getUserVisit().iterator();
     while (it.hasNext()) {
       final UserVisit uv = it.next();

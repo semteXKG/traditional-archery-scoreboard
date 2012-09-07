@@ -15,6 +15,7 @@ import semtex.archery.util.ArcheryBackupManager;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.os.ParcelUuid;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.*;
@@ -36,14 +37,15 @@ public class Scoreboard extends OrmLiteBaseActivity<DatabaseHelper> {
     final Intent intent = getIntent();
     if (intent == null) {
       return;
-    }
+    } // if
 
-    final Long visit = intent.getLongExtra("visit_id", -1);
-    if (visit == -1) {
+    final ParcelUuid visitUuid = intent.getParcelableExtra("visit_id");
+
+    if (visitUuid == null) {
       return;
-    }
+    } // if
 
-    final Visit v = getHelper().getVisitDao().queryForId(visit);
+    final Visit v = getHelper().getVisitDao().queryForId(visitUuid.getUuid());
 
     final ReportGenerator generator = new ReportGenerator(getHelper());
     final ParcourReportData reportData = generator.generateReportForVisit(v);
@@ -124,7 +126,7 @@ public class Scoreboard extends OrmLiteBaseActivity<DatabaseHelper> {
         bm.dataChanged();
 
         final Intent intent = new Intent(getApplicationContext(), Sharing.class);
-        intent.putExtra("visit_id", v.getId());
+        intent.putExtra("visit_id", new ParcelUuid(v.getId()));
         startActivity(intent);
 
         setResult(RESULT_OK);

@@ -2,6 +2,7 @@
 package semtex.archery.entities.data.entities;
 
 import java.io.Serializable;
+import java.util.UUID;
 
 import semtex.archery.entities.data.dao.TargetDao;
 
@@ -21,7 +22,7 @@ public class Target implements Serializable {
   public static final String TARGETNUMBER = "target_number";
 
   @DatabaseField(generatedId = true)
-  private Long id;
+  private final UUID id = UUID.randomUUID();
 
   @DatabaseField(columnName = TARGETNUMBER)
   private Integer targetNumber;
@@ -52,13 +53,8 @@ public class Target implements Serializable {
   }
 
 
-  public Long getId() {
+  public UUID getId() {
     return id;
-  }
-
-
-  public void setId(final Long id) {
-    this.id = id;
   }
 
 

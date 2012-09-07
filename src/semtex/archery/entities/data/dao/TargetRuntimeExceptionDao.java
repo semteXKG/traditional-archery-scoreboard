@@ -3,6 +3,7 @@ package semtex.archery.entities.data.dao;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.UUID;
 
 import semtex.archery.entities.data.entities.Target;
 import semtex.archery.entities.data.entities.Version;
@@ -10,7 +11,7 @@ import semtex.archery.entities.data.entities.Version;
 import com.j256.ormlite.dao.RuntimeExceptionDao;
 
 
-public class TargetRuntimeExceptionDao extends RuntimeExceptionDao<Target, Long> {
+public class TargetRuntimeExceptionDao extends RuntimeExceptionDao<Target, UUID> {
 
   private final ITargetDao dao;
 

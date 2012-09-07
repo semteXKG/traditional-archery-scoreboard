@@ -7,6 +7,7 @@ import semtex.archery.entities.data.DatabaseHelper;
 import semtex.archery.entities.data.entities.Visit;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.ParcelUuid;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -74,12 +75,10 @@ public class Sharing extends OrmLiteBaseActivity<DatabaseHelper> {
     setContentView(R.layout.sharing);
 
     final Intent intent = getIntent();
-    final long visitId = intent.getLongExtra("visit_id", -1);
-    if (visitId != -1) {
-      visit = getHelper().getVisitDao().queryForId(visitId);
-    } // if
-
-    if (visit == null) {
+    final ParcelUuid visitUuid = intent.getParcelableExtra("visit_id");
+    if (visitUuid != null) {
+      visit = getHelper().getVisitDao().queryForId(visitUuid.getUuid());
+    } else {
       finish();
       setResult(RESULT_OK);
     } // visit

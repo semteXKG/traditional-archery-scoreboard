@@ -24,6 +24,7 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.ParcelUuid;
 import android.util.Log;
 import android.view.*;
 import android.view.ContextMenu.ContextMenuInfo;
@@ -170,7 +171,7 @@ public class History extends OrmLiteBaseListActivity<DatabaseHelper> {
         final Visit v = (Visit)lv.getItemAtPosition(position);
 
         final Intent i = new Intent(getApplicationContext(), Scoreboard.class);
-        i.putExtra("visit_id", v.getId());
+        i.putExtra("visit_id", new ParcelUuid(v.getId()));
 
         startActivity(i);
       } // open parcour

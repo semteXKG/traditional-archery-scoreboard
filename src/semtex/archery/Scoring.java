@@ -25,6 +25,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.ParcelUuid;
 import android.provider.MediaStore;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
@@ -289,15 +290,10 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
   protected void saveResults() {
     // Saving results to parcour page
     for (final TargetHit th : userTargetHits.values()) {
-      if (th.getId() == null) {
-        Log.i(TAG, "Saving TH info in DB " + th);
-        getHelper().getTargetHitDao().create(th);
-      } else {
-        Log.i(TAG, "Updating TH info in DB " + th);
-        getHelper().getTargetHitDao().update(th);
-      }
-    }
-  }
+      Log.i(TAG, "Saving TH info in DB " + th);
+      getHelper().getTargetHitDao().createOrUpdate(th);
+    } // for
+  } // saveResults
 
 
   protected void saveResultsAndSwap(final boolean forward) {
@@ -479,7 +475,7 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
 
               public void onClick(final View v) {
                 final Intent i = new Intent(getApplicationContext(), Scoreboard.class);
-                i.putExtra("visit_id", currentVisit.getId());
+                i.putExtra("visit_id", new ParcelUuid(currentVisit.getId()));
                 startActivityForResult(i, RC_SCOREBOARD);
               }
             });

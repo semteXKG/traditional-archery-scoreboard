@@ -2,6 +2,7 @@
 package semtex.archery.entities.data.entities;
 
 import java.io.Serializable;
+import java.util.UUID;
 
 import com.j256.ormlite.dao.ForeignCollection;
 import com.j256.ormlite.field.DatabaseField;
@@ -13,7 +14,7 @@ import com.j256.ormlite.table.DatabaseTable;
 public class UserVisit implements Serializable {
 
   @DatabaseField(generatedId = true)
-  private Long id;
+  private UUID id = UUID.randomUUID();
 
   @DatabaseField(foreign = true, foreignAutoRefresh = true)
   private User user;
@@ -40,12 +41,12 @@ public class UserVisit implements Serializable {
   }
 
 
-  public Long getId() {
+  public UUID getId() {
     return id;
   }
 
 
-  public void setId(final Long id) {
+  public void setId(final UUID id) {
     this.id = id;
   }
 

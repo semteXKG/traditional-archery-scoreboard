@@ -3,6 +3,7 @@ package semtex.archery.entities.data.dao;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.UUID;
 
 import semtex.archery.entities.data.entities.Target;
 import semtex.archery.entities.data.entities.TargetHit;
@@ -18,7 +19,7 @@ import com.j256.ormlite.stmt.Where;
 import com.j256.ormlite.support.ConnectionSource;
 
 
-public class TargetHitDao extends BaseDaoImpl<TargetHit, Long> implements ITargetHitDao {
+public class TargetHitDao extends BaseDaoImpl<TargetHit, UUID> implements ITargetHitDao {
 
   public TargetHitDao(final ConnectionSource connectionSource) throws SQLException {
     super(connectionSource, TargetHit.class);
@@ -29,7 +30,7 @@ public class TargetHitDao extends BaseDaoImpl<TargetHit, Long> implements ITarge
     final GenericRawResults<String[]> results =
         queryRaw("SELECT MAX(target.target_number) FROM visit " + "LEFT JOIN user_visit uv ON uv.visit_id = visit.id "
             + "LEFT JOIN target_hit th ON th.user = uv.id " + "LEFT JOIN target ON target.id = th.target "
-            + "WHERE visit.id = " + v.getId());
+            + "WHERE visit.id = \"" + v.getId() + "\"");
 
     try {
       for (final String[] result : results) {
@@ -45,7 +46,7 @@ public class TargetHitDao extends BaseDaoImpl<TargetHit, Long> implements ITarge
 
 
   public Integer deleteTargetHitsFromUserVisit(final UserVisit uv) throws SQLException {
-    final DeleteBuilder<TargetHit, Long> deleteBuilder = deleteBuilder();
+    final DeleteBuilder<TargetHit, UUID> deleteBuilder = deleteBuilder();
     deleteBuilder.where().eq(TargetHit.USER_VISIT, uv.getId());
     return delete(deleteBuilder.prepare());
   }
@@ -53,8 +54,8 @@ public class TargetHitDao extends BaseDaoImpl<TargetHit, Long> implements ITarge
 
   public TargetHit findTargetHitByUserVisitAndTarget(final UserVisit userVisit, final Target target)
       throws SQLException {
-    final QueryBuilder<TargetHit, Long> qb = queryBuilder();
-    final Where<TargetHit, Long> where = qb.where();
+    final QueryBuilder<TargetHit, UUID> qb = queryBuilder();
+    final Where<TargetHit, UUID> where = qb.where();
 
     where.and(where.eq(TargetHit.USER_VISIT, userVisit), where.eq(TargetHit.TARGET, target));
 
@@ -64,7 +65,7 @@ public class TargetHitDao extends BaseDaoImpl<TargetHit, Long> implements ITarge
 
 
   public Integer calculatePointsByUser(final UserVisit userVisit) throws SQLException {
-    final QueryBuilder<TargetHit, Long> queryBuilder = queryBuilder();
+    final QueryBuilder<TargetHit, UUID> queryBuilder = queryBuilder();
     queryBuilder.selectRaw("SUM(points)");
     queryBuilder.where().eq(TargetHit.USER_VISIT, userVisit);
     final GenericRawResults<Object[]> results =
@@ -75,8 +76,8 @@ public class TargetHitDao extends BaseDaoImpl<TargetHit, Long> implements ITarge
 
   public List<TargetHit> findTargetHitsByVisitAndTarget(final Visit currentVisit, final Target target)
       throws SQLException {
-    final QueryBuilder<TargetHit, Long> qb = queryBuilder();
-    final Where<TargetHit, Long> where = qb.where();
+    final QueryBuilder<TargetHit, UUID> qb = queryBuilder();
+    final Where<TargetHit, UUID> where = qb.where();
     where.and(where.eq(TargetHit.TARGET, target), where.in(TargetHit.USER_VISIT, currentVisit.getUserVisit()));
     qb.setWhere(where);
     return qb.query();

@@ -3,13 +3,14 @@ package semtex.archery.entities.data.dao;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.UUID;
 
 import semtex.archery.entities.data.entities.Visit;
 
 import com.j256.ormlite.dao.RuntimeExceptionDao;
 
 
-public class VisitRuntimeExceptionDao extends RuntimeExceptionDao<Visit, Long> {
+public class VisitRuntimeExceptionDao extends RuntimeExceptionDao<Visit, UUID> {
 
   private final IVisitDao dao;
 
