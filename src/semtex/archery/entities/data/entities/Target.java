@@ -24,7 +24,7 @@ public class Target implements Serializable {
   @DatabaseField(generatedId = true)
   private final UUID id = UUID.randomUUID();
 
-  @DatabaseField(columnName = TARGETNUMBER)
+  @DatabaseField(columnName = TARGETNUMBER, index = true)
   private Integer targetNumber;
 
   @DatabaseField(foreign = true, columnName = VERSION)
