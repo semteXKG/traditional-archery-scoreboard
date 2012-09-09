@@ -36,6 +36,7 @@
                    android:value="History" />
         </activity>
         <meta-data android:name="com.google.android.backup.api_key" android:value="AEdPqrEAAAAISB_FPu5AUYzXaPWZjOq2juTT5h6pVLBcXZFfTA" />
+        <activity android:name="ArcheryPreferences"></activity>
     </application>
 
 </manifest>

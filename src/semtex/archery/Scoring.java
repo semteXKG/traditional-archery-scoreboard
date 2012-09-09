@@ -15,6 +15,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -26,7 +27,10 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.ParcelUuid;
+import android.preference.PreferenceManager;
 import android.provider.MediaStore;
+import android.speech.tts.TextToSpeech;
+import android.speech.tts.TextToSpeech.OnInitListener;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
@@ -40,7 +44,7 @@ import com.j256.ormlite.dao.ForeignCollection;
 import com.j256.ormlite.dao.RuntimeExceptionDao;
 
 
-public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
+public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> implements OnInitListener {
 
   public static final String TAG = Scoring.class.getName();
 
@@ -48,11 +52,21 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
 
   private Target currentTarget;
 
+  private boolean voiceSayNames;
+
+  private boolean voiceEnabled;
+
+  private Locale voiceLanguage;
+
+  private boolean showIntermediateResults;
+
   private static final int MAX_ARROWS = 4;
 
   protected static final int RC_SCOREBOARD = 2;
 
   private static final int RC_TAKE_PICTORE = 3;
+
+  private static final int VOICE_CHECK_TTS_DATA = 4;
 
   private static final int MENU_START_STOP_ORDERING = 1;
 
@@ -60,7 +74,7 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
 
   private final Map<UserVisit, Integer> userPoints = new HashMap<UserVisit, Integer>();
 
-  private final Map<UserVisit, TargetHit> userTargetHits = new HashMap<UserVisit, TargetHit>();
+  private final Map<UserVisit, TargetHit> userTargetHits = new TreeMap<UserVisit, TargetHit>(new RankComparator());
 
   private ViewPagerAdapter viewPageAdapter;
 
@@ -73,6 +87,8 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
   private RuntimeExceptionDao<UserVisit, Long> userVisitDao;
 
   private boolean editMode = false;
+
+  private TextToSpeech mTts = null;
 
   private final DropListener dropListener = new DropListener() {
 
@@ -237,16 +253,41 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
     final ViewPager viewPager = (ViewPager)findViewById(R.id.viewpager);
     viewPager.setAdapter(viewPageAdapter);
 
+    // load all preferences for this page
+    loadSharedPreferences();
+
+    // fire Intent to check TTS engine
+    if (voiceEnabled) {
+      final Intent checkVoiceIntent = new Intent();
+      checkVoiceIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
+      startActivityForResult(checkVoiceIntent, VOICE_CHECK_TTS_DATA);
+    }
+
     fetchSetupData();
     updateUIElements();
-  }
+  } // onCreate
+
+
+  private void loadSharedPreferences() {
+    final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+    voiceEnabled = prefs.getBoolean("scoreTelling", false);
+    voiceSayNames = prefs.getBoolean("archerNameTelling", false);
+    showIntermediateResults = prefs.getBoolean("showIntermediateResults", true);
+
+    final String language = prefs.getString("voiceLanguage", "en");
+    if (language.equals("en")) {
+      voiceLanguage = Locale.ENGLISH;
+    } else {
+      voiceLanguage = Locale.GERMAN;
+    } // if / else
+  } // loadSharedPreferences
 
 
   @Override
   protected void onPause() {
     saveResults();
     super.onPause();
-  }
+  } // onPause
 
 
   private void initScoringMatrix() {
@@ -297,6 +338,7 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
 
 
   protected void saveResultsAndSwap(final boolean forward) {
+    readResultsToUser();
     saveResults();
 
     // fetching the next target..
@@ -317,6 +359,22 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
     fillTargetHitMap();
     updateUIElements();
   }
+
+
+  private void readResultsToUser() {
+    if (voiceEnabled && mTts != null && !mTts.isSpeaking()) {
+      for (final Map.Entry<UserVisit, TargetHit> entry : userTargetHits.entrySet()) {
+        if (voiceSayNames) {
+          mTts.speak(entry.getKey().getUser().getUserName(), TextToSpeech.QUEUE_ADD, null);
+        }
+        if (entry.getValue().getPoints() == null) {
+          mTts.speak("nichts", TextToSpeech.QUEUE_ADD, null);
+        } else {
+          mTts.speak(entry.getValue().getPoints().toString(), TextToSpeech.QUEUE_ADD, null);
+        }
+      } // for
+    } // if
+  } // readResultsToUser
 
 
   private void initializeScoring() {
@@ -372,8 +430,32 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
       currentTarget.setPictureLocation(location);
       getHelper().getTargetDao().update(currentTarget);
       updateUIElements();
+    } else if (requestCode == VOICE_CHECK_TTS_DATA) {
+      mTts = new TextToSpeech(this, this);
+    } // else if
+  } // onActivityResult
+
+
+  public void onInit(final int status) {
+    if (mTts.isLanguageAvailable(voiceLanguage) != TextToSpeech.LANG_MISSING_DATA) {
+      mTts.setLanguage(voiceLanguage);
+    } else {
+      // missing data, install it
+      final Intent installIntent = new Intent();
+      installIntent.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
+      startActivity(installIntent);
     }
-  }
+  } // onInit
+
+
+  @Override
+  protected void onDestroy() {
+    if (mTts != null) {
+      mTts.stop();
+      mTts.shutdown();
+    } // if
+    super.onDestroy();
+  } // onDestroy
 
   public class ViewPagerAdapter extends PagerAdapter {
 
@@ -616,6 +698,9 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
       btnArrow.setVisibility(editMode ? View.INVISIBLE : View.VISIBLE);
       final TextView txtPoints = (TextView)v.findViewById(R.id.txtPoints);
       txtPoints.setText(points + " pts");
+      if (!showIntermediateResults) {
+        txtPoints.setVisibility(View.INVISIBLE);
+      } // showIntermediateResults
 
       for (final ToggleButton btn : buttonContainer.keySet()) {
         final int buttonValue = scoringMatrix[th.getNrOfArrows()][buttonContainer.get(btn)];
@@ -701,4 +786,5 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> {
       return lhs.getRank().compareTo(rhs.getRank());
     }
   }
+
 }

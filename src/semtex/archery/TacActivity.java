@@ -50,5 +50,14 @@ public class TacActivity extends OrmLiteBaseActivity<DatabaseHelper> {
       }
     });
 
+    final Button btnSettings = (Button)findViewById(R.id.btnSettings);
+    btnSettings.setOnClickListener(new View.OnClickListener() {
+
+      public void onClick(final View v) {
+        final Intent intent = new Intent(TacActivity.this, ArcheryPreferences.class);
+        startActivity(intent);
+      }
+    });
+
   }
 }

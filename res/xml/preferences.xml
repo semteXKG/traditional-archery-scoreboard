@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+  <PreferenceCategory android:title="Text To Speech">
+    <CheckBoxPreference android:key="scoreTelling" android:title="Score telling" android:summary="entered scores will be read to you" android:defaultValue="true"/>
+    <CheckBoxPreference android:key="archerNameTelling" android:title="Archer name telling" android:summary="names corresponding archer before each score" android:defaultValue="false" android:dependency="scoreTelling"/>
+    <ListPreference android:key="voiceLanguage" android:title="Language" android:entries="@array/languageList" android:entryValues="@array/languageValues" android:defaultValue="de" android:dependency="scoreTelling"/>        
+  </PreferenceCategory>
+  <PreferenceCategory android:title="Scoring">
+    <CheckBoxPreference android:key="showIntermediateResults" android:title="Show intermediate scores" android:summary="displays intermediate scores" android:defaultValue="true"/>
+  </PreferenceCategory>
+      
+
+</PreferenceScreen>

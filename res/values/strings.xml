@@ -12,7 +12,7 @@
     <string name="mail">Mail</string>
     <string name="color">Color</string>
     <string name="pick_color">pick</string>
-    <string name="cancel">cancel</string>
+    <string name="cancel">Cancel</string>
     <string name="save">save</string>
     <string name="statistic_end">statistic/end</string>
     <string name="reorder">reorder</string>
@@ -32,4 +32,5 @@
     <string name="share_quit">Return</string>
     <string name="share_description">You can always share it later in the \"History\" menu.</string>
     <string name="parcour_name">parcour name</string>
+    <string name="settings">Settings</string>
 </resources>
