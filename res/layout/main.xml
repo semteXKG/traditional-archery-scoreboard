@@ -31,7 +31,7 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_weight="0.2"
-        android:text="@string/settings" android:textSize="10pt" android:textStyle="bold" android:background="@drawable/button_background"/>
+        android:text="@string/settings" android:textSize="10pt" android:textStyle="bold" android:drawableLeft="@drawable/ic_menu_preferences" android:background="@drawable/button_background"/>
     
     
 </LinearLayout>

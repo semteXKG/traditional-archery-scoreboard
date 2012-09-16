@@ -82,16 +82,17 @@ containing a value of this type.
         public static final int file_info48=0x7f02000d;
         public static final int history_64_64=0x7f02000e;
         public static final int ic_launcher=0x7f02000f;
-        public static final int ic_menu_search=0x7f020010;
-        public static final int ic_menu_show_list=0x7f020011;
-        public static final int ic_menu_usermanager=0x7f020012;
-        public static final int not_available=0x7f020013;
-        public static final int rect=0x7f020014;
-        public static final int save48=0x7f020015;
-        public static final int search48=0x7f020016;
-        public static final int togglebutton=0x7f020017;
-        public static final int users48=0x7f020018;
-        public static final int users_64_64=0x7f020019;
+        public static final int ic_menu_preferences=0x7f020010;
+        public static final int ic_menu_search=0x7f020011;
+        public static final int ic_menu_show_list=0x7f020012;
+        public static final int ic_menu_usermanager=0x7f020013;
+        public static final int not_available=0x7f020014;
+        public static final int rect=0x7f020015;
+        public static final int save48=0x7f020016;
+        public static final int search48=0x7f020017;
+        public static final int togglebutton=0x7f020018;
+        public static final int users48=0x7f020019;
+        public static final int users_64_64=0x7f02001a;
     }
     public static final class id {
         public static final int LinearLayout1=0x7f08002d;

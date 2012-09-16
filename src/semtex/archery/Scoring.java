@@ -17,6 +17,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -60,6 +61,8 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> implements OnIn
   private Locale voiceLanguage;
 
   private boolean showIntermediateResults;
+
+  private boolean portraitMode;
 
   private static final int MAX_ARROWS = 4;
 
@@ -241,7 +244,7 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> implements OnIn
 
       public void onClick(final View v) {
         saveResultsAndSwap(true);
-      }
+      } // onClick
     });
 
     final ImageButton btnLast = (ImageButton)findViewById(R.id.btnPrev);
@@ -249,7 +252,7 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> implements OnIn
 
       public void onClick(final View v) {
         saveResultsAndSwap(false);
-      }
+      } // onClick
     });
 
     viewPageAdapter = new ViewPagerAdapter();
@@ -264,10 +267,13 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> implements OnIn
       final Intent checkVoiceIntent = new Intent();
       checkVoiceIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
       startActivityForResult(checkVoiceIntent, VOICE_CHECK_TTS_DATA);
-    }
+    } // if
 
     fetchSetupData();
     updateUIElements();
+
+    setRequestedOrientation(portraitMode ? ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        : ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
   } // onCreate
 
 
@@ -283,6 +289,8 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> implements OnIn
     } else {
       voiceLanguage = Locale.GERMAN;
     } // if / else
+
+    portraitMode = prefs.getBoolean("orientationLockToPortrait", true);
   } // loadSharedPreferences
 
 
@@ -341,7 +349,7 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> implements OnIn
 
 
   protected void saveResultsAndSwap(final boolean forward) {
-    if (forward && hasUnsavedChanges()) {
+    if (hasUnsavedChanges()) {
       readResultsToUser();
     }
     saveResults();

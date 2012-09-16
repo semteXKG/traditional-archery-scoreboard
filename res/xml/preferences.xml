@@ -6,6 +6,7 @@
     <ListPreference android:key="voiceLanguage" android:title="Language" android:entries="@array/languageList" android:entryValues="@array/languageValues" android:defaultValue="de" android:dependency="scoreTelling"/>        
   </PreferenceCategory>
   <PreferenceCategory android:title="Scoring">
+    <CheckBoxPreference android:key="orientationLockToPortrait" android:title="Portrait mode" android:summary="while in scoring" android:defaultValue="true"/>
     <CheckBoxPreference android:key="showIntermediateResults" android:title="Show intermediate scores" android:summary="displays intermediate scores" android:defaultValue="true"/>
   </PreferenceCategory>
       
