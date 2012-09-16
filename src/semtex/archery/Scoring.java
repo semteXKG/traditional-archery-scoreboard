@@ -11,6 +11,7 @@ import java.util.*;
 import semtex.archery.entities.data.DatabaseHelper;
 import semtex.archery.entities.data.ExternalStorageManager;
 import semtex.archery.entities.data.entities.*;
+import semtex.archery.util.VoiceOutputFactory;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -74,7 +75,9 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> implements OnIn
 
   private final Map<UserVisit, Integer> userPoints = new HashMap<UserVisit, Integer>();
 
-  private final Map<UserVisit, TargetHit> userTargetHits = new TreeMap<UserVisit, TargetHit>(new RankComparator());
+  private final Map<UserVisit, TargetHit> currentTargetHits = new TreeMap<UserVisit, TargetHit>(new RankComparator());
+
+  private final Map<UserVisit, TargetHit> originalTargetHits = new HashMap<UserVisit, TargetHit>();
 
   private ViewPagerAdapter viewPageAdapter;
 
@@ -330,7 +333,7 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> implements OnIn
 
   protected void saveResults() {
     // Saving results to parcour page
-    for (final TargetHit th : userTargetHits.values()) {
+    for (final TargetHit th : currentTargetHits.values()) {
       Log.i(TAG, "Saving TH info in DB " + th);
       getHelper().getTargetHitDao().createOrUpdate(th);
     } // for
@@ -338,7 +341,9 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> implements OnIn
 
 
   protected void saveResultsAndSwap(final boolean forward) {
-    readResultsToUser();
+    if (forward && hasUnsavedChanges()) {
+      readResultsToUser();
+    }
     saveResults();
 
     // fetching the next target..
@@ -361,14 +366,24 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> implements OnIn
   }
 
 
+  private boolean hasUnsavedChanges() {
+    for (final Map.Entry<UserVisit, TargetHit> entry : currentTargetHits.entrySet()) {
+      if (currentTargetHits.get(entry.getKey()).getPoints() != originalTargetHits.get(entry.getKey()).getPoints()) {
+        return true;
+      } // if score has changed
+    } // for
+    return false;
+  } // hasUnsavedChanges
+
+
   private void readResultsToUser() {
     if (voiceEnabled && mTts != null && !mTts.isSpeaking()) {
-      for (final Map.Entry<UserVisit, TargetHit> entry : userTargetHits.entrySet()) {
+      for (final Map.Entry<UserVisit, TargetHit> entry : currentTargetHits.entrySet()) {
         if (voiceSayNames) {
           mTts.speak(entry.getKey().getUser().getUserName(), TextToSpeech.QUEUE_ADD, null);
         }
         if (entry.getValue().getPoints() == null) {
-          mTts.speak("nichts", TextToSpeech.QUEUE_ADD, null);
+          mTts.speak(VoiceOutputFactory.targetSkipped(voiceLanguage), TextToSpeech.QUEUE_ADD, null);
         } else {
           mTts.speak(entry.getValue().getPoints().toString(), TextToSpeech.QUEUE_ADD, null);
         }
@@ -400,18 +415,21 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> implements OnIn
 
 
   private void fillTargetHitMap() {
-    userTargetHits.clear();
+    currentTargetHits.clear();
+    originalTargetHits.clear();
 
     final ForeignCollection<UserVisit> uv = currentVisit.getUserVisit();
     for (final UserVisit userVisit : uv) {
       final TargetHit th = getHelper().getTargetHitDao().findTargetHitByUserVisitAndTarget(userVisit, currentTarget);
       if (th != null) {
         Log.i(TAG, "TargetHit " + th + " found for " + userVisit);
-        userTargetHits.put(userVisit, th);
+        currentTargetHits.put(userVisit, th);
+        originalTargetHits.put(userVisit, th.clone());
       } else {
         Log.i(TAG, "Creating new TargetHit for " + userVisit);
         final TargetHit newHit = new TargetHit(null, 1, userVisit, currentTarget);
-        userTargetHits.put(userVisit, newHit);
+        currentTargetHits.put(userVisit, newHit);
+        originalTargetHits.put(userVisit, newHit.clone());
       }
     }
     Log.i(TAG, "added " + uv.size() + " players");
@@ -469,7 +487,7 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> implements OnIn
         final TouchListView listView = (TouchListView)scoringView.findViewById(R.id.tlvUserScoring);
         adapter =
             new UserVisitAdapter(Scoring.this.getApplicationContext(), R.layout.scoring_user_row, new LinkedList(
-                userTargetHits.keySet()));
+                currentTargetHits.keySet()));
         adapter.sort(new RankComparator());
         listView.setAdapter(adapter);
       }
@@ -630,12 +648,12 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> implements OnIn
       points.setText("-");
 
       final Button btnArrows = (Button)rowView.findViewById(R.id.btnNoOfArrows);
-      btnArrows.setText(arrowBtnDesc[userTargetHits.get(uv).getNrOfArrows()]);
+      btnArrows.setText(arrowBtnDesc[currentTargetHits.get(uv).getNrOfArrows()]);
 
       btnArrows.setOnClickListener(new View.OnClickListener() {
 
         public void onClick(final View v) {
-          final TargetHit th = userTargetHits.get(uv);
+          final TargetHit th = currentTargetHits.get(uv);
           incrementUsedArrows(th);
           updateHitButtons(finalRowView, scoringButtons, th, userPoints.get(uv));
         }
@@ -650,14 +668,14 @@ public class Scoring extends OrmLiteBaseActivity<DatabaseHelper> implements OnIn
 
       });
 
-      updateHitButtons(finalRowView, scoringButtons, userTargetHits.get(uv), userPoints.get(uv));
+      updateHitButtons(finalRowView, scoringButtons, currentTargetHits.get(uv), userPoints.get(uv));
 
       for (final ToggleButton tb : scoringButtons.keySet()) {
         tb.setOnClickListener(new View.OnClickListener() {
 
           public void onClick(final View v) {
             final ToggleButton btn = (ToggleButton)v;
-            final TargetHit th = userTargetHits.get(uv);
+            final TargetHit th = currentTargetHits.get(uv);
             if (btn.isChecked()) {
               setPoints(uv, th, scoringMatrix[th.getNrOfArrows()][scoringButtons.get(btn)]);
             } else {

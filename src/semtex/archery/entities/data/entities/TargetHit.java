@@ -11,7 +11,7 @@ import com.j256.ormlite.table.DatabaseTable;
 
 
 @DatabaseTable(tableName = "target_hit", daoClass = TargetHitDao.class)
-public class TargetHit implements Serializable {
+public class TargetHit implements Serializable, Cloneable {
 
   public static final String TARGET = "target";
 
@@ -105,6 +105,28 @@ public class TargetHit implements Serializable {
 
   public void setNrOfArrows(final Integer nrOfArrows) {
     this.nrOfArrows = nrOfArrows;
+  }
+
+
+  @Override
+  public TargetHit clone() {
+    TargetHit clone = null;
+    try {
+      clone = (TargetHit)super.clone();
+    } catch(final CloneNotSupportedException cnse) {
+      return null;
+    } // catch
+
+    if (clone == null) {
+      return null;
+    } // if
+
+    clone.setId(id);
+    clone.setNrOfArrows(nrOfArrows);
+    clone.setPoints(points);
+    clone.setTarget(target);
+    clone.setUser(user);
+    return clone;
   }
 
 }
