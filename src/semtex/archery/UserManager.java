@@ -3,8 +3,8 @@ package semtex.archery;
 
 import java.util.List;
 
-import semtex.archery.entities.data.DatabaseHelper;
-import semtex.archery.entities.data.entities.User;
+import semtex.archery.data.DatabaseHelper;
+import semtex.archery.data.entities.User;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.GradientDrawable;

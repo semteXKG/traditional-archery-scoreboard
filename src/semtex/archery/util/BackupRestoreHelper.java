@@ -5,8 +5,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 
-import semtex.archery.entities.data.DatabaseHelper;
-import semtex.archery.entities.data.ExternalStorageManager;
+import semtex.archery.data.DatabaseHelper;
+import semtex.archery.data.ExternalStorageManager;
 import android.os.Environment;
 import android.util.Log;
 

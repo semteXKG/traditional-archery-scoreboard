@@ -6,11 +6,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map;
 
-import semtex.archery.entities.data.DatabaseHelper;
-import semtex.archery.entities.data.ReportGenerator;
-import semtex.archery.entities.data.entities.UserVisit;
-import semtex.archery.entities.data.entities.Visit;
-import semtex.archery.entities.data.reports.ParcourReportData;
+import semtex.archery.data.DatabaseHelper;
+import semtex.archery.data.ReportGenerator;
+import semtex.archery.data.entities.UserVisit;
+import semtex.archery.data.entities.Visit;
+import semtex.archery.data.reports.ParcourReportData;
 import semtex.archery.util.ArcheryBackupManager;
 import android.content.Intent;
 import android.graphics.Typeface;

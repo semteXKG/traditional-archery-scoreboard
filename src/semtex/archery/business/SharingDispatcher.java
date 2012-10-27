@@ -23,10 +23,10 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 
 import semtex.archery.business.interfaces.ICallback;
-import semtex.archery.entities.data.DatabaseHelper;
-import semtex.archery.entities.data.ReportGenerator;
-import semtex.archery.entities.data.entities.UserVisit;
-import semtex.archery.entities.data.entities.Visit;
+import semtex.archery.data.DatabaseHelper;
+import semtex.archery.data.ReportGenerator;
+import semtex.archery.data.entities.UserVisit;
+import semtex.archery.data.entities.Visit;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;

@@ -6,8 +6,8 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
-import semtex.archery.entities.data.DatabaseHelper;
-import semtex.archery.entities.data.entities.*;
+import semtex.archery.data.DatabaseHelper;
+import semtex.archery.data.entities.*;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;

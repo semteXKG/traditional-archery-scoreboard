@@ -1,7 +1,7 @@
 
 package semtex.archery;
 
-import semtex.archery.entities.data.DatabaseHelper;
+import semtex.archery.data.DatabaseHelper;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;

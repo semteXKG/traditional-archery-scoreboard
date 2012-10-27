@@ -3,10 +3,10 @@ package semtex.archery;
 
 import java.util.regex.Pattern;
 
+import semtex.archery.data.DatabaseHelper;
+import semtex.archery.data.entities.User;
 import semtex.archery.dialogs.ColorPickerDialog;
 import semtex.archery.dialogs.ColorPickerDialog.OnColorChangedListener;
-import semtex.archery.entities.data.DatabaseHelper;
-import semtex.archery.entities.data.entities.User;
 import android.app.Dialog;
 import android.graphics.Color;
 import android.os.Bundle;

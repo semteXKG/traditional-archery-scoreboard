@@ -8,11 +8,11 @@ import java.util.*;
 
 import semtex.archery.business.SharingDispatcher;
 import semtex.archery.business.interfaces.CallbackAdapter;
-import semtex.archery.entities.data.DatabaseHelper;
-import semtex.archery.entities.data.ReportGenerator;
-import semtex.archery.entities.data.entities.UserVisit;
-import semtex.archery.entities.data.entities.Visit;
-import semtex.archery.entities.data.reports.ParcourReportData;
+import semtex.archery.data.DatabaseHelper;
+import semtex.archery.data.ReportGenerator;
+import semtex.archery.data.entities.UserVisit;
+import semtex.archery.data.entities.Visit;
+import semtex.archery.data.reports.ParcourReportData;
 import semtex.archery.util.BackupRestoreHelper;
 import semtex.archery.util.ProcessUtils;
 import android.annotation.SuppressLint;

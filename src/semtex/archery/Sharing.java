@@ -3,8 +3,8 @@ package semtex.archery;
 
 import semtex.archery.business.SharingDispatcher;
 import semtex.archery.business.interfaces.ICallback;
-import semtex.archery.entities.data.DatabaseHelper;
-import semtex.archery.entities.data.entities.Visit;
+import semtex.archery.data.DatabaseHelper;
+import semtex.archery.data.entities.Visit;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.ParcelUuid;

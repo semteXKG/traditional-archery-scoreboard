@@ -8,9 +8,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
 
-import semtex.archery.entities.data.DatabaseHelper;
-import semtex.archery.entities.data.ExternalStorageManager;
-import semtex.archery.entities.data.entities.*;
+import semtex.archery.data.DatabaseHelper;
+import semtex.archery.data.ExternalStorageManager;
+import semtex.archery.data.entities.*;
 import semtex.archery.util.VoiceOutputFactory;
 import android.app.AlertDialog;
 import android.content.Context;
